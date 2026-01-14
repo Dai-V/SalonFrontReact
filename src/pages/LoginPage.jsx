@@ -19,11 +19,11 @@ export default function LoginPage() {
             body: JSON.stringify({ username: username, password: password })
         }
         ).then(response => {
+            if (response.ok) {
+                navigate("/dashboard")
+            }
             return response.json();
         })
-            .then(data => {
-                console.log(data)
-            })
     };
 
     return (
