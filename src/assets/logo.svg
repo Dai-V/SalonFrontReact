@@ -1,0 +1,46 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="100" cy="100" r="90" fill="#2563eb" opacity="0.1"/>
+  
+  <!-- Main Calendar Shape -->
+  <rect x="50" y="55" width="100" height="90" rx="8" fill="#2563eb"/>
+  
+  <!-- Calendar Header -->
+  <rect x="50" y="55" width="100" height="20" rx="8" fill="#1e40af"/>
+  <rect x="50" y="65" width="100" height="10" fill="#1e40af"/>
+  
+  <!-- Calendar Rings -->
+  <circle cx="70" cy="60" r="4" fill="none" stroke="#ffffff" stroke-width="2"/>
+  <circle cx="100" cy="60" r="4" fill="none" stroke="#ffffff" stroke-width="2"/>
+  <circle cx="130" cy="60" r="4" fill="none" stroke="#ffffff" stroke-width="2"/>
+  
+  <!-- Calendar Grid Dots -->
+  <circle cx="65" cy="90" r="3" fill="#ffffff" opacity="0.6"/>
+  <circle cx="80" cy="90" r="3" fill="#ffffff" opacity="0.6"/>
+  <circle cx="95" cy="90" r="3" fill="#ffffff" opacity="0.6"/>
+  <circle cx="110" cy="90" r="3" fill="#ffffff" opacity="0.6"/>
+  <circle cx="125" cy="90" r="3" fill="#ffffff" opacity="0.6"/>
+  
+  <circle cx="65" cy="105" r="3" fill="#ffffff" opacity="0.6"/>
+  <circle cx="80" cy="105" r="3" fill="#ffffff" opacity="0.6"/>
+  <circle cx="95" cy="105" r="3" fill="#ffffff" opacity="0.6"/>
+  <circle cx="110" cy="105" r="3" fill="#ffffff" opacity="0.6"/>
+  <circle cx="125" cy="105" r="3" fill="#ffffff" opacity="0.6"/>
+  
+  <circle cx="65" cy="120" r="3" fill="#ffffff" opacity="0.6"/>
+  <circle cx="80" cy="120" r="3" fill="#ffffff" opacity="0.6"/>
+  <circle cx="95" cy="120" r="3" fill="#ffffff" opacity="0.6"/>
+  <circle cx="110" cy="120" r="3" fill="#ffffff" opacity="0.6"/>
+  <circle cx="125" cy="120" r="3" fill="#ffffff" opacity="0.6"/>
+  
+  <!-- Highlighted Appointment Date -->
+  <circle cx="110" cy="105" r="8" fill="#10b981"/>
+  <circle cx="110" cy="105" r="3" fill="#ffffff"/>
+  
+  <!-- Clock Icon Overlay -->
+  <circle cx="125" cy="130" r="18" fill="#ffffff"/>
+  <circle cx="125" cy="130" r="16" fill="#10b981"/>
+  <circle cx="125" cy="130" r="2" fill="#ffffff"/>
+  <line x1="125" y1="130" x2="125" y2="122" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+  <line x1="125" y1="130" x2="130" y2="130" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+</svg>
