@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard.jsx'
 createRoot(document.getElementById('root')).render(
   <BrowserRouter>
     <Routes>
+      <Route path="/" element={< LoginPage />} />
       <Route path="/login" element={< LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/dashboard" element={<Dashboard />} />

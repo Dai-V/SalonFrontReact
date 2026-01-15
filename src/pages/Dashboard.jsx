@@ -1,8 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import NavBar from '../components/NavBar.jsx';
+import Customers from '../components/Customers.jsx';
 
 export default function Dashboard() {
     const [activePage, setActivePage] = useState('Dashboard');
+    const [activeContent, setActiveContent] = useState('')
+    const apiURL = import.meta.env.VITE_API_URL;
+    const getCsrfToken = () => {
+        fetch(apiURL + '/is_logged_in/', {
+            method: 'GET',
+            credentials: 'include',
+        })
+            .then(response => {
+                console.log(response)
+                return response.json()
+            })
+            .then(data => {
+                sessionStorage.setItem('csrfToken', data['X-CSRFToken']);
+            });
+    }
+    useEffect(() => {
+        if (activePage === 'Customers') {
+            setActiveContent(<Customers />)
+        }
+        getCsrfToken()
+    }, [activePage]);
 
     const handleMenuItemClick = (itemName) => {
         setActivePage(itemName);
@@ -23,14 +45,14 @@ export default function Dashboard() {
             <div style={styles.mainContent}>
                 <div style={styles.contentHeader}>
                     <h1 style={styles.pageTitle}>{activePage}</h1>
-                    <p style={styles.pageSubtitle}>Welcome to your appointment management system</p>
+                    <p style={styles.pageSubtitle}> </p>
                 </div>
 
                 <div style={styles.contentBody}>
-                    {/* Your dashboard content goes here */}
+                    {activeContent}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 
@@ -55,10 +77,11 @@ const styles = {
         flexDirection: 'column',
     },
     contentHeader: {
-        padding: '20px',
+        padding: '1.5rem',
         backgroundColor: '#ffffff',
         borderBottom: '1px solid #e5e7eb',
         marginLeft: '-1px',
+        height: '3rem'
     },
     pageTitle: {
         fontSize: '32px',

@@ -42,7 +42,7 @@ export default function Sidebar({ onMenuItemClick, onLogout, activeItem = 'Dashb
                 {!isCollapsed && (
                     <div style={styles.logoContainer}>
                         <div style={styles.logo}>
-                            <span style={styles.logoText}>A</span>
+                            <span style={styles.logoText}>S</span>
                         </div>
                         <span style={styles.brandName}>SalonLite</span>
                     </div>
@@ -94,12 +94,12 @@ const styles = {
         height: '100vh',
     },
     header: {
-        padding: '20px',
+        padding: '1.5rem',
+        height: '3rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         borderBottom: '1px solid #e5e7eb',
-        height: '67px'
     },
     logoContainer: {
         display: 'flex',
@@ -107,8 +107,8 @@ const styles = {
         gap: '12px',
     },
     logo: {
-        width: '40px',
-        height: '40px',
+        width: '2rem',
+        height: '2rem',
         backgroundColor: '#2563eb',
         borderRadius: '8px',
         display: 'flex',
@@ -138,7 +138,7 @@ const styles = {
     },
     nav: {
         flex: 1,
-        padding: '20px 0',
+        padding: '0.5rem',
         display: 'flex',
         flexDirection: 'column',
         gap: '4px',
