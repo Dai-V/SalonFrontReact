@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import CustomerAddModal from './CustomerAddModal.jsx';
+import CustomerEditModal from './CustomerEditModal.jsx';
 export default function Customers() {
     const [customers, setCustomers] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [hoveredRow, setHoveredRow] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editCustomer, setEditCustomer] = useState('')
+
     const apiURL = import.meta.env.VITE_API_URL;
 
     const filteredCustomers = customers.filter(customer =>
@@ -14,6 +18,10 @@ export default function Customers() {
         customer.CustomerPhone.includes(searchTerm)
     );
 
+    const handleRowClick = (customerID) => {
+        setEditCustomer(customers.find(customer => customer.CustomerID === customerID))
+        setShowEditModal(true)
+    }
 
     const handleAddCustomer = (customerData) => {
         fetch(apiURL + '/customers/', {
@@ -41,6 +49,33 @@ export default function Customers() {
         })
         setShowAddModal(false);
     };
+
+    const handleEditCustomer = (customerData) => {
+        fetch(apiURL + '/customers/' + editCustomer.CustomerID + '/', {
+            method: 'PUT',
+            headers: new Headers({
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': sessionStorage.getItem('csrfToken')
+            }),
+            credentials: 'include',
+            body: JSON.stringify({
+                CustomerFirstName: customerData.firstName,
+                CustomerLastName: customerData.lastName,
+                CustomerPhone: customerData.phone,
+                CustomerEmail: customerData.email,
+                CustomerInfo: customerData.info,
+                CustomerAddress: customerData.address
+            })
+        }
+        ).then(response => {
+            if (response.ok) {
+                getCustomers()
+            }
+            return response.json();
+        })
+        setShowEditModal(false);
+    }
 
     const getCustomers = () => {
         fetch(apiURL + '/customers/', {
@@ -88,7 +123,7 @@ export default function Customers() {
                     <tbody>
                         {filteredCustomers.map((customer) => (
                             <tr
-                                key={customer.CustomerId}
+                                key={customer.CustomerID}
                                 style={{
                                     ...styles.tableRow,
                                     backgroundColor: hoveredRow === customer.CustomerID ? '#e8edf3ff' : '#ffffff',
@@ -127,6 +162,12 @@ export default function Customers() {
                 isOpen={showAddModal}
                 onClose={() => setShowAddModal(false)}
                 onSave={handleAddCustomer}
+            />
+            <CustomerEditModal
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                onSave={handleEditCustomer}
+                editCustomer={editCustomer}
             />
         </div>
     );

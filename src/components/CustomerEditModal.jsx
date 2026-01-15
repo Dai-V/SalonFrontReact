@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export default function CustomerAddModal({ isOpen, onClose, onSave }) {
+export default function CustomerEditModal({ isOpen, onClose, onSave, editCustomer }) {
     const [newCustomer, setNewCustomer] = useState({
         firstName: '',
         lastName: '',
@@ -9,6 +9,19 @@ export default function CustomerAddModal({ isOpen, onClose, onSave }) {
         address: '',
         info: '',
     });
+
+    useEffect(() => {
+        if (editCustomer) {
+            setNewCustomer({
+                firstName: editCustomer.CustomerFirstName || '',
+                lastName: editCustomer.CustomerLastName || '',
+                email: editCustomer.CustomerEmail || '',
+                phone: editCustomer.CustomerPhone || '',
+                address: editCustomer.CustomerAddress || '',
+                info: editCustomer.CustomerInfo || '',
+            });
+        }
+    }, [editCustomer]);
 
     const [errors, setErrors] = useState({});
 
@@ -65,12 +78,10 @@ export default function CustomerAddModal({ isOpen, onClose, onSave }) {
         }
 
         onSave(newCustomer);
-        setNewCustomer({ firstName: '', lastName: '', email: '', phone: '', address: '', info: '' });
         setErrors({});
     };
 
     const handleClose = () => {
-        setNewCustomer({ firstName: '', lastName: '', email: '', phone: '', address: '', info: '' });
         setErrors({});
         onClose();
     };
