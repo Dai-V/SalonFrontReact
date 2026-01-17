@@ -40,4 +40,3 @@ Authentication:
 + Logout
 + Signup
 
-Todos:
