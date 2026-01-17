@@ -1,30 +1,28 @@
 import { useState, useEffect } from 'react';
-import CustomerAddModal from './CustomerAddModal.jsx';
-import CustomerEditModal from './CustomerEditModal.jsx';
-export default function Customers() {
-    const [customers, setCustomers] = useState([]);
+import TechAddModal from './TechAddModal.jsx'
+import TechEditModal from './TechEditModal.jsx'
+export default function Technicians() {
+    const [techs, setTechs] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [hoveredRow, setHoveredRow] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [editCustomer, setEditCustomer] = useState('')
-
+    const [editTech, setEditTech] = useState('')
     const apiURL = import.meta.env.VITE_API_URL;
 
-    const filteredCustomers = customers.filter(customer =>
-        customer.CustomerFirstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.CustomerLastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.CustomerEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.CustomerPhone.includes(searchTerm)
+    const filteredTechs = techs.filter(tech =>
+        tech.TechName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tech.TechEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tech.TechPhone.includes(searchTerm)
     );
 
-    const handleRowClick = (customerID) => {
-        setEditCustomer(customers.find(customer => customer.CustomerID === customerID))
+    const handleRowClick = (techID) => {
+        setEditTech(techs.find(tech => tech.TechID === techID))
         setShowEditModal(true)
     }
 
-    const handleAddCustomer = (customerData) => {
-        fetch(apiURL + '/customers/', {
+    const handleAddTech = (techData) => {
+        fetch(apiURL + '/technicians/', {
             method: 'POST',
             headers: new Headers({
                 'Accept': 'application/json',
@@ -33,25 +31,24 @@ export default function Customers() {
             }),
             credentials: 'include',
             body: JSON.stringify({
-                CustomerFirstName: customerData.firstName,
-                CustomerLastName: customerData.lastName,
-                CustomerPhone: customerData.phone,
-                CustomerEmail: customerData.email,
-                CustomerInfo: customerData.info,
-                CustomerAddress: customerData.address
+                TechName: techData.name,
+                TechPhone: techData.phone,
+                TechEmail: techData.email,
+                TechInfo: techData.info,
+                TechAddress: techData.address
             })
         }
         ).then(response => {
             if (response.ok) {
-                getCustomers()
+                getTechs()
             }
             return response.json();
         })
         setShowAddModal(false);
     };
 
-    const handleEditCustomer = (customerData) => {
-        fetch(apiURL + '/customers/' + editCustomer.CustomerID + '/', {
+    const handleEditTech = (techData) => {
+        fetch(apiURL + '/technicians/' + editTech.TechID + '/', {
             method: 'PUT',
             headers: new Headers({
                 'Accept': 'application/json',
@@ -60,25 +57,23 @@ export default function Customers() {
             }),
             credentials: 'include',
             body: JSON.stringify({
-                CustomerFirstName: customerData.firstName,
-                CustomerLastName: customerData.lastName,
-                CustomerPhone: customerData.phone,
-                CustomerEmail: customerData.email,
-                CustomerInfo: customerData.info,
-                CustomerAddress: customerData.address
+                TechName: techData.name,
+                TechPhone: techData.phone,
+                TechEmail: techData.email,
+                TechInfo: techData.info,
             })
         }
         ).then(response => {
             if (response.ok) {
-                getCustomers()
+                getTechs()
             }
             return response.json();
         })
         setShowEditModal(false);
     }
 
-    const getCustomers = () => {
-        fetch(apiURL + '/customers/', {
+    const getTechs = () => {
+        fetch(apiURL + '/technicians/', {
             method: 'GET',
             headers: new Headers({
                 'Accept': 'application/json',
@@ -90,12 +85,12 @@ export default function Customers() {
             return response.json();
         })
             .then(data => {
-                setCustomers(data)
+                setTechs(data)
             })
     }
 
     useEffect(() => {
-        getCustomers()
+        getTechs()
     }, []);
 
     return (
@@ -103,7 +98,7 @@ export default function Customers() {
             <div style={styles.searchContainer}>
                 <input
                     type="text"
-                    placeholder="Search customers..."
+                    placeholder="Search techs..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     style={styles.searchInput}
@@ -114,37 +109,31 @@ export default function Customers() {
                 <table style={styles.table}>
                     <thead>
                         <tr style={styles.tableHeaderRow}>
-                            <th style={{ ...styles.tableHeader, width: '15%' }}>First Name</th>
-                            <th style={{ ...styles.tableHeader, width: '15%' }}>Last Name</th>
+                            <th style={{ ...styles.tableHeader, width: '15%' }}>Name</th>
                             <th style={{ ...styles.tableHeader, width: '25%' }}>Email</th>
                             <th style={{ ...styles.tableHeader, width: '20%' }}>Phone</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredCustomers.map((customer) => (
+                        {filteredTechs.map((tech) => (
                             <tr
-                                key={customer.CustomerID}
+                                key={tech.TechID}
                                 style={{
                                     ...styles.tableRow,
-                                    backgroundColor: hoveredRow === customer.CustomerID ? '#e8edf3ff' : '#ffffff',
+                                    backgroundColor: hoveredRow === tech.TechID ? '#e8edf3ff' : '#ffffff',
                                     cursor: 'pointer',
                                 }}
-                                onClick={() => handleRowClick(customer.CustomerID)}
-                                onMouseEnter={() => setHoveredRow(customer.CustomerID)}
+                                onClick={() => handleRowClick(tech.TechID)}
+                                onMouseEnter={() => setHoveredRow(tech.TechID)}
                                 onMouseLeave={() => setHoveredRow(null)}
                             >
                                 <td style={styles.tableCell}>
                                     <div style={styles.nameCell}>
-                                        <span style={styles.nameText}>{customer.CustomerFirstName}</span>
+                                        <span style={styles.nameText}>{tech.TechName}</span>
                                     </div>
                                 </td>
-                                <td style={styles.tableCell}>
-                                    <div style={styles.nameCell}>
-                                        <span style={styles.nameText}>{customer.CustomerLastName}</span>
-                                    </div>
-                                </td>
-                                <td style={styles.tableCell}>{customer.CustomerEmail}</td>
-                                <td style={styles.tableCell}>{customer.CustomerPhone}</td>
+                                <td style={styles.tableCell}>{tech.TechEmail}</td>
+                                <td style={styles.tableCell}>{tech.TechPhone}</td>
 
                             </tr>
                         ))}
@@ -153,21 +142,21 @@ export default function Customers() {
             </div>
 
             <div style={styles.footer}>
-                <button style={styles.addButton} onClick={() => setShowAddModal(true)}>+ Add Customer</button>
+                <button style={styles.addButton} onClick={() => setShowAddModal(true)}>+ Add Tech</button>
                 <p style={styles.footerText}>
-                    Showing {filteredCustomers.length} of {customers.length} customers
+                    Showing {filteredTechs.length} of {techs.length} techs
                 </p>
             </div>
-            <CustomerAddModal
+            <TechAddModal
                 isOpen={showAddModal}
                 onClose={() => setShowAddModal(false)}
-                onSave={handleAddCustomer}
+                onSave={handleAddTech}
             />
-            <CustomerEditModal
+            <TechEditModal
                 isOpen={showEditModal}
                 onClose={() => setShowEditModal(false)}
-                onSave={handleEditCustomer}
-                editCustomer={editCustomer}
+                onSave={handleEditTech}
+                editTech={editTech}
             />
         </div>
     );

@@ -1,32 +1,28 @@
 import { useState, useEffect } from 'react';
-import CustomerHistoryModal from './CustomerHistoryModal.jsx';
+import TechHistoryModal from './TechHistoryModal.jsx';
 
-export default function CustomerEditModal({ isOpen, onClose, onSave, editCustomer }) {
-    const [customer, setCustomer] = useState({
-        firstName: '',
-        lastName: '',
+export default function TechEditModal({ isOpen, onClose, onSave, editTech }) {
+    const [tech, setTech] = useState({
+        name: '',
         email: '',
         phone: '',
-        address: '',
         info: '',
     });
 
     const [errors, setErrors] = useState({});
     const [showHistoryModal, setShowHistoryModal] = useState(false);
 
-    // Pre-fill form when editCustomer changes
+    // Pre-fill form when editTech changes
     useEffect(() => {
-        if (editCustomer) {
-            setCustomer({
-                firstName: editCustomer.CustomerFirstName || '',
-                lastName: editCustomer.CustomerLastName || '',
-                email: editCustomer.CustomerEmail || '',
-                phone: editCustomer.CustomerPhone || '',
-                address: editCustomer.CustomerAddress || '',
-                info: editCustomer.CustomerInfo || '',
+        if (editTech) {
+            setTech({
+                name: editTech.TechName || '',
+                email: editTech.TechEmail || '',
+                phone: editTech.TechPhone || '',
+                info: editTech.TechInfo || '',
             });
         }
-    }, [editCustomer]);
+    }, [editTech]);
 
     const formatPhoneNumber = (value) => {
         const phoneNumber = value.replace(/\D/g, '');
@@ -61,14 +57,14 @@ export default function CustomerEditModal({ isOpen, onClose, onSave, editCustome
             }
         }
 
-        setCustomer({ ...customer, [field]: formattedValue });
+        setTech({ ...tech, [field]: formattedValue });
         setErrors(newErrors);
     };
 
     const handleSubmit = () => {
         let newErrors = {};
 
-        if (customer.email && !validateEmail(customer.email)) {
+        if (tech.email && !validateEmail(tech.email)) {
             newErrors.email = 'Please enter a valid email address';
         }
 
@@ -78,8 +74,8 @@ export default function CustomerEditModal({ isOpen, onClose, onSave, editCustome
         }
 
         onSave({
-            ...customer,
-            customerID: editCustomer.CustomerID
+            ...tech,
+            techID: editTech.TechID
         });
         setErrors({});
     };
@@ -97,31 +93,20 @@ export default function CustomerEditModal({ isOpen, onClose, onSave, editCustome
             <div style={styles.modalOverlay} onClick={handleClose}>
                 <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                     <div style={styles.modalHeader}>
-                        <h3 style={styles.modalTitle}>Edit Customer</h3>
+                        <h3 style={styles.modalTitle}>Edit Tech</h3>
                         <button style={styles.closeButton} onClick={handleClose}>×</button>
                     </div>
 
                     <div style={styles.modalBody}>
                         <div style={styles.formRow}>
                             <div style={styles.formGroup}>
-                                <label style={styles.label}>First Name</label>
+                                <label style={styles.label}>Name</label>
                                 <input
                                     type="text"
-                                    value={customer.firstName}
-                                    onChange={(e) => handleInputChange('firstName', e.target.value)}
+                                    value={tech.name}
+                                    onChange={(e) => handleInputChange('name', e.target.value)}
                                     style={styles.input}
-                                    placeholder="Enter first name"
-                                />
-                            </div>
-
-                            <div style={styles.formGroup}>
-                                <label style={styles.label}>Last Name</label>
-                                <input
-                                    type="text"
-                                    value={customer.lastName}
-                                    onChange={(e) => handleInputChange('lastName', e.target.value)}
-                                    style={styles.input}
-                                    placeholder="Enter last name"
+                                    placeholder="Enter full name"
                                 />
                             </div>
                         </div>
@@ -130,13 +115,13 @@ export default function CustomerEditModal({ isOpen, onClose, onSave, editCustome
                             <label style={styles.label}>Email</label>
                             <input
                                 type="email"
-                                value={customer.email}
+                                value={tech.email}
                                 onChange={(e) => handleInputChange('email', e.target.value)}
                                 style={{
                                     ...styles.input,
                                     borderColor: errors.email ? '#dc2626' : '#e5e7eb',
                                 }}
-                                placeholder="customer@email.com"
+                                placeholder="tech@email.com"
                             />
                             {errors.email && (
                                 <span style={styles.errorText}>{errors.email}</span>
@@ -147,20 +132,19 @@ export default function CustomerEditModal({ isOpen, onClose, onSave, editCustome
                             <label style={styles.label}>Phone</label>
                             <input
                                 type="tel"
-                                value={customer.phone}
+                                value={tech.phone}
                                 onChange={(e) => handleInputChange('phone', e.target.value)}
                                 style={styles.input}
                                 placeholder="(555) 123-4567"
                             />
                         </div>
-
                         <div style={styles.formGroup}>
                             <label style={styles.label}>Additional Information</label>
                             <textarea
-                                value={customer.info}
+                                value={tech.info}
                                 onChange={(e) => handleInputChange('info', e.target.value)}
                                 style={styles.textarea}
-                                placeholder="Any additional information about the customer"
+                                placeholder="Any additional information about the tech"
                                 rows="3"
                             />
                         </div>
@@ -185,10 +169,10 @@ export default function CustomerEditModal({ isOpen, onClose, onSave, editCustome
                 </div>
             </div>
 
-            <CustomerHistoryModal
+            <TechHistoryModal
                 isOpen={showHistoryModal}
                 onClose={() => setShowHistoryModal(false)}
-                customerID={editCustomer?.CustomerID}
+                techID={editTech?.TechID}
             />
         </>
     );

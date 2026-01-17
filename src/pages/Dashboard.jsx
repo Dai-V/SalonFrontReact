@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import NavBar from '../components/NavBar.jsx';
 import Customers from '../components/Customers.jsx';
+import Technicians from '../components/Technicians.jsx';
 
 export default function Dashboard() {
     const [activePage, setActivePage] = useState('Dashboard');
@@ -22,6 +23,9 @@ export default function Dashboard() {
     useEffect(() => {
         if (activePage === 'Customers') {
             setActiveContent(<Customers />)
+        }
+        if (activePage === 'Technicians') {
+            setActiveContent(<Technicians />)
         }
         getCsrfToken()
     }, [activePage]);
