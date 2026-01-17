@@ -30,9 +30,8 @@ export default function Sidebar({ onMenuItemClick, onLogout, activeItem = 'Dashb
     };
 
     const handleLogout = () => {
-        if (onLogout) {
-            onLogout();
-        }
+        if (onLogout)
+            onLogout()
     };
 
     return (

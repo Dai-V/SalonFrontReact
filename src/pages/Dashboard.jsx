@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import NavBar from '../components/NavBar.jsx';
 import Customers from '../components/Customers.jsx';
 import Technicians from '../components/Technicians.jsx';
+import { Link, useNavigate } from "react-router-dom"
 
 export default function Dashboard() {
     const [activePage, setActivePage] = useState('Dashboard');
     const [activeContent, setActiveContent] = useState('')
     const apiURL = import.meta.env.VITE_API_URL;
+    const navigate = useNavigate();
     const getCsrfToken = () => {
         fetch(apiURL + '/is_logged_in/', {
             method: 'GET',
@@ -35,7 +37,20 @@ export default function Dashboard() {
     };
 
     const handleLogout = () => {
-
+        fetch(apiURL + '/logout/', {
+            method: 'POST',
+            headers: new Headers({
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': sessionStorage.getItem('csrfToken')
+            }),
+            credentials: 'include',
+        }
+        ).then(response => {
+            sessionStorage.setItem('csrfToken', '')
+            navigate('/login')
+            return response.json();
+        })
     };
 
     return (
