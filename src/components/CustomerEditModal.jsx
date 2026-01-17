@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import CustomerHistoryModal from './CustomerHistoryModal.jsx';
 
 export default function CustomerEditModal({ isOpen, onClose, onSave, editCustomer }) {
-    const [newCustomer, setNewCustomer] = useState({
+    const [customer, setCustomer] = useState({
         firstName: '',
         lastName: '',
         email: '',
@@ -10,9 +11,13 @@ export default function CustomerEditModal({ isOpen, onClose, onSave, editCustome
         info: '',
     });
 
+    const [errors, setErrors] = useState({});
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+
+    // Pre-fill form when editCustomer changes
     useEffect(() => {
         if (editCustomer) {
-            setNewCustomer({
+            setCustomer({
                 firstName: editCustomer.CustomerFirstName || '',
                 lastName: editCustomer.CustomerLastName || '',
                 email: editCustomer.CustomerEmail || '',
@@ -23,13 +28,9 @@ export default function CustomerEditModal({ isOpen, onClose, onSave, editCustome
         }
     }, [editCustomer]);
 
-    const [errors, setErrors] = useState({});
-
     const formatPhoneNumber = (value) => {
-        // Remove all non-numeric characters
         const phoneNumber = value.replace(/\D/g, '');
 
-        // Format as (XXX) XXX-XXXX
         if (phoneNumber.length <= 3) {
             return phoneNumber;
         } else if (phoneNumber.length <= 6) {
@@ -60,15 +61,14 @@ export default function CustomerEditModal({ isOpen, onClose, onSave, editCustome
             }
         }
 
-        setNewCustomer({ ...newCustomer, [field]: formattedValue });
+        setCustomer({ ...customer, [field]: formattedValue });
         setErrors(newErrors);
     };
 
     const handleSubmit = () => {
-        // Validate before submitting
         let newErrors = {};
 
-        if (newCustomer.email && !validateEmail(newCustomer.email)) {
+        if (customer.email && !validateEmail(customer.email)) {
             newErrors.email = 'Please enter a valid email address';
         }
 
@@ -77,100 +77,131 @@ export default function CustomerEditModal({ isOpen, onClose, onSave, editCustome
             return;
         }
 
-        onSave(newCustomer);
+        onSave({
+            ...customer,
+            customerID: editCustomer.CustomerID
+        });
         setErrors({});
     };
 
     const handleClose = () => {
         setErrors({});
+        setShowHistoryModal(false);
         onClose();
     };
 
     if (!isOpen) return null;
 
     return (
-        <div style={styles.modalOverlay} onClick={handleClose}>
-            <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-                <div style={styles.modalHeader}>
-                    <h3 style={styles.modalTitle}>Add New Customer</h3>
-                    <button style={styles.closeButton} onClick={handleClose}>×</button>
-                </div>
+        <>
+            <div style={styles.modalOverlay} onClick={handleClose}>
+                <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+                    <div style={styles.modalHeader}>
+                        <h3 style={styles.modalTitle}>Edit Customer</h3>
+                        <button style={styles.closeButton} onClick={handleClose}>×</button>
+                    </div>
 
-                <div style={styles.modalBody}>
-                    <div style={styles.formRow}>
+                    <div style={styles.modalBody}>
+                        <div style={styles.formRow}>
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>First Name</label>
+                                <input
+                                    type="text"
+                                    value={customer.firstName}
+                                    onChange={(e) => handleInputChange('firstName', e.target.value)}
+                                    style={styles.input}
+                                    placeholder="Enter first name"
+                                />
+                            </div>
+
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>Last Name</label>
+                                <input
+                                    type="text"
+                                    value={customer.lastName}
+                                    onChange={(e) => handleInputChange('lastName', e.target.value)}
+                                    style={styles.input}
+                                    placeholder="Enter last name"
+                                />
+                            </div>
+                        </div>
+
                         <div style={styles.formGroup}>
-                            <label style={styles.label}>First Name</label>
+                            <label style={styles.label}>Email</label>
                             <input
-                                type="text"
-                                value={newCustomer.firstName}
-                                onChange={(e) => handleInputChange('firstName', e.target.value)}
+                                type="email"
+                                value={customer.email}
+                                onChange={(e) => handleInputChange('email', e.target.value)}
+                                style={{
+                                    ...styles.input,
+                                    borderColor: errors.email ? '#dc2626' : '#e5e7eb',
+                                }}
+                                placeholder="customer@email.com"
+                            />
+                            {errors.email && (
+                                <span style={styles.errorText}>{errors.email}</span>
+                            )}
+                        </div>
+
+                        <div style={styles.formGroup}>
+                            <label style={styles.label}>Phone</label>
+                            <input
+                                type="tel"
+                                value={customer.phone}
+                                onChange={(e) => handleInputChange('phone', e.target.value)}
                                 style={styles.input}
-                                placeholder="Enter first name"
+                                placeholder="(555) 123-4567"
                             />
                         </div>
 
                         <div style={styles.formGroup}>
-                            <label style={styles.label}>Last Name</label>
+                            <label style={styles.label}>Address</label>
                             <input
                                 type="text"
-                                value={newCustomer.lastName}
-                                onChange={(e) => handleInputChange('lastName', e.target.value)}
+                                value={customer.address}
+                                onChange={(e) => handleInputChange('address', e.target.value)}
                                 style={styles.input}
-                                placeholder="Enter last name"
+                                placeholder="123 Main St"
+                            />
+                        </div>
+
+                        <div style={styles.formGroup}>
+                            <label style={styles.label}>Additional Information</label>
+                            <textarea
+                                value={customer.info}
+                                onChange={(e) => handleInputChange('info', e.target.value)}
+                                style={styles.textarea}
+                                placeholder="Any additional information about the customer"
+                                rows="3"
                             />
                         </div>
                     </div>
 
-                    <div style={styles.formGroup}>
-                        <label style={styles.label}>Email</label>
-                        <input
-                            type="email"
-                            value={newCustomer.email}
-                            onChange={(e) => handleInputChange('email', e.target.value)}
-                            style={{
-                                ...styles.input,
-                                borderColor: errors.email ? '#dc2626' : '#e5e7eb',
-                            }}
-                            placeholder="customer@email.com"
-                        />
-                        {errors.email && (
-                            <span style={styles.errorText}>{errors.email}</span>
-                        )}
+                    <div style={styles.modalFooter}>
+                        <button
+                            style={styles.historyButton}
+                            onClick={() => setShowHistoryModal(true)}
+                        >
+                            📋 View History
+                        </button>
+                        <div style={styles.footerRight}>
+                            <button style={styles.cancelButton} onClick={handleClose}>
+                                Cancel
+                            </button>
+                            <button style={styles.saveButton} onClick={handleSubmit}>
+                                Save Changes
+                            </button>
+                        </div>
                     </div>
-
-                    <div style={styles.formGroup}>
-                        <label style={styles.label}>Phone</label>
-                        <input
-                            type="tel"
-                            value={newCustomer.phone}
-                            onChange={(e) => handleInputChange('phone', e.target.value)}
-                            style={styles.input}
-                            placeholder="(555) 123-4567"
-                        />
-                    </div>
-
-                    <div style={styles.formGroup}>
-                        <label style={styles.label}>Additional Information</label>
-                        <textarea
-                            value={newCustomer.info}
-                            onChange={(e) => handleInputChange('info', e.target.value)}
-                            style={styles.textarea}
-                            placeholder="Any additional information about the customer"
-                            rows="3"
-                        />
-                    </div>
-                </div>
-
-                <div style={styles.modalFooter}>
-                    <button style={styles.cancelButton} onClick={handleClose}>
-                        Cancel
-                    </button>
-                    <button style={styles.saveButton} onClick={handleSubmit}>
-                        Add Customer
-                    </button>
                 </div>
             </div>
-        </div>
+
+            <CustomerHistoryModal
+                isOpen={showHistoryModal}
+                onClose={() => setShowHistoryModal(false)}
+                customerID={editCustomer?.CustomerID}
+            />
+        </>
     );
 }
 
@@ -272,10 +303,27 @@ const styles = {
     },
     modalFooter: {
         display: 'flex',
-        justifyContent: 'flex-end',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         gap: '12px',
         padding: '16px 24px 24px 24px',
         borderTop: '1px solid #e5e7eb',
+    },
+    footerRight: {
+        display: 'flex',
+        gap: '12px',
+    },
+    historyButton: {
+        backgroundColor: '#ffffff',
+        color: '#2563eb',
+        border: '1px solid #2563eb',
+        borderRadius: '8px',
+        padding: '10px 20px',
+        fontSize: '14px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     cancelButton: {
         backgroundColor: '#ffffff',

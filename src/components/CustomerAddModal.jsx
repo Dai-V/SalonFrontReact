@@ -151,9 +151,6 @@ export default function CustomerAddModal({ isOpen, onClose, onSave }) {
                 </div>
 
                 <div style={styles.modalFooter}>
-                    <button style={styles.cancelButton} onClick={handleClose}>
-                        Cancel
-                    </button>
                     <button style={styles.saveButton} onClick={handleSubmit}>
                         Add Customer
                     </button>
