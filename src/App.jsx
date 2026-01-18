@@ -5,7 +5,6 @@ import './App.css'
 
 function App() {
 
-  const { isLoggedIn } = false;
   return (
     <>
 

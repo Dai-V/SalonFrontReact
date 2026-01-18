@@ -3,6 +3,7 @@ import NavBar from '../components/NavBar.jsx';
 import Customers from '../components/Customers.jsx';
 import Technicians from '../components/Technicians.jsx';
 import { Link, useNavigate } from "react-router-dom"
+import SavedServices from '../components/SavedServices.jsx';
 
 export default function Dashboard() {
     const [activePage, setActivePage] = useState('Dashboard');
@@ -29,6 +30,8 @@ export default function Dashboard() {
         if (activePage === 'Technicians') {
             setActiveContent(<Technicians />)
         }
+        if (activePage === 'Saved Services')
+            setActiveContent(<SavedServices />)
         getCsrfToken()
     }, [activePage]);
 
