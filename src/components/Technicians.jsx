@@ -158,6 +158,7 @@ export default function Technicians() {
                 onSave={handleEditTech}
                 editTech={editTech}
             />
+
         </div>
     );
 }
