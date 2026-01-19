@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import SavedServiceAddModal from './SavedServiceAddModal';
+import SavedServiceEditModal from './SavedServiceEditModal'
 
 export default function SavedServices() {
     const [services, setServices] = useState([]);
@@ -42,9 +43,35 @@ export default function SavedServices() {
         setShowAddModal(false);
     };
 
+    const handleEditService = (serviceData) => {
+        fetch(apiURL + '/savedservices/' + editService.ServiceID + '/', {
+            method: 'PUT',
+            headers: new Headers({
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': sessionStorage.getItem('csrfToken')
+            }),
+            credentials: 'include',
+            body: JSON.stringify({
+                ServiceCode: serviceData.code.toUpperCase(),
+                ServiceName: serviceData.name,
+                ServicePrice: serviceData.price,
+                ServiceDuration: serviceData.duration,
+                ServiceDescription: serviceData.description
+            })
+        }
+        ).then(response => {
+            if (response.ok) {
+                getServices()
+            }
+            return response.json();
+        })
+        setShowEditModal(false);
+    };
+
     const handleRowClick = (serviceID) => {
-        console.log('Service clicked:', serviceID);
-        // Add your row click logic here
+        setEditService(services.find(service => service.ServiceID === serviceID))
+        setShowEditModal(true)
     };
 
     const getServices = () => {
@@ -147,6 +174,13 @@ export default function SavedServices() {
                 onClose={() => setShowAddModal(false)}
                 onSave={handleAddService}
                 services={services}
+            />
+            <SavedServiceEditModal
+                isOpen={showEditModal}
+                onClose={() => setShowEditModal(false)}
+                onSave={handleEditService}
+                services={services}
+                editService={editService}
             />
         </div>
     );

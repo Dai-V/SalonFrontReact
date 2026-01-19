@@ -1,76 +1,85 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export default function CustomerAddModal({ isOpen, onClose, onSave }) {
-    const [newCustomer, setNewCustomer] = useState({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        address: '',
-        info: '',
+export default function SavedServiceEditModal({ isOpen, onClose, onSave, services, editService }) {
+    const [newService, setNewService] = useState({
+        code: '',
+        name: '',
+        price: '',
+        duration: '',
+        description: '',
     });
 
     const [errors, setErrors] = useState({});
-
-    const formatPhoneNumber = (value) => {
-        // Remove all non-numeric characters
-        const phoneNumber = value.replace(/\D/g, '');
-
-        // Format as (XXX) XXX-XXXX
-        if (phoneNumber.length <= 3) {
-            return phoneNumber;
-        } else if (phoneNumber.length <= 6) {
-            return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`;
-        } else {
-            return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`;
-        }
-    };
-
-    const validateEmail = (email) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    };
 
     const handleInputChange = (field, value) => {
         let formattedValue = value;
         let newErrors = { ...errors };
 
-        if (field === 'phone') {
-            formattedValue = formatPhoneNumber(value);
-        }
-
-        if (field === 'email') {
-            if (value && !validateEmail(value)) {
-                newErrors.email = 'Please enter a valid email address';
-            } else {
-                delete newErrors.email;
+        // Only allow numbers and decimals for price
+        if (field === 'price') {
+            formattedValue = value.replace(/[^0-9.]/g, '');
+            // Ensure only one decimal point
+            const parts = formattedValue.split('.');
+            if (parts.length > 2) {
+                formattedValue = parts[0] + '.' + parts.slice(1).join('');
             }
         }
 
-        setNewCustomer({ ...newCustomer, [field]: formattedValue });
+        // Only allow whole numbers for duration
+        if (field === 'duration') {
+            formattedValue = value.replace(/[^0-9]/g, '');
+        }
+
+        setNewService({ ...newService, [field]: formattedValue });
         setErrors(newErrors);
     };
 
+    useEffect(() => {
+        if (editService) {
+            setNewService({
+                code: editService.ServiceCode || '',
+                name: editService.ServiceName || '',
+                price: editService.ServicePrice || '',
+                duration: editService.ServiceDuration || '',
+                description: editService.ServiceDescription || '',
+            });
+        }
+    }, [editService]);
+
     const handleSubmit = () => {
-        // Validate before submitting
         let newErrors = {};
 
-        if (newCustomer.email && !validateEmail(newCustomer.email)) {
-            newErrors.email = 'Please enter a valid email address';
+        if (!newService.code.trim()) {
+            newErrors.code = 'Service code is required';
+        }
+        for (let i in services) {
+            if (services[i].ServiceCode.toLowerCase() === newService.code.toLowerCase() && newService.code.toLowerCase() != editService.ServiceCode.toLowerCase()) {
+                newErrors.code = 'Service code is already used';
+                break;
+            }
+        }
+
+        if (!newService.name.trim()) {
+            newErrors.name = 'Service name is required';
+        }
+
+        if (!newService.price || parseFloat(newService.price) <= 0) {
+            newErrors.price = 'Please enter a valid price';
+        }
+
+        if (!newService.duration || parseInt(newService.duration) <= 0) {
+            newErrors.duration = 'Please enter a valid duration';
         }
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             return;
         }
-
-        onSave(newCustomer);
-        setNewCustomer({ firstName: '', lastName: '', email: '', phone: '', address: '', info: '' });
+        onSave(newService);
         setErrors({});
     };
 
     const handleClose = () => {
-        setNewCustomer({ firstName: '', lastName: '', email: '', phone: '', address: '', info: '' });
         setErrors({});
         onClose();
     };
@@ -81,70 +90,90 @@ export default function CustomerAddModal({ isOpen, onClose, onSave }) {
         <div style={styles.modalOverlay} onClick={handleClose}>
             <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                 <div style={styles.modalHeader}>
-                    <h3 style={styles.modalTitle}>Add New Customer</h3>
+                    <h3 style={styles.modalTitle}>Add New Service</h3>
                     <button style={styles.closeButton} onClick={handleClose}>×</button>
                 </div>
 
                 <div style={styles.modalBody}>
                     <div style={styles.formRow}>
                         <div style={styles.formGroup}>
-                            <label style={styles.label}>First Name</label>
+                            <label style={styles.label}>Service Code</label>
                             <input
                                 type="text"
-                                value={newCustomer.firstName}
-                                onChange={(e) => handleInputChange('firstName', e.target.value)}
-                                style={styles.input}
-                                placeholder="Enter first name"
+                                value={newService.code}
+                                onChange={(e) => handleInputChange('code', e.target.value)}
+                                style={{
+                                    ...styles.input,
+                                    borderColor: errors.code ? '#dc2626' : '#e5e7eb',
+                                }}
+                                placeholder="e.g., SRV001"
                             />
+                            {errors.code && (
+                                <span style={styles.errorText}>{errors.code}</span>
+                            )}
                         </div>
 
                         <div style={styles.formGroup}>
-                            <label style={styles.label}>Last Name</label>
+                            <label style={styles.label}>Service Name</label>
                             <input
                                 type="text"
-                                value={newCustomer.lastName}
-                                onChange={(e) => handleInputChange('lastName', e.target.value)}
-                                style={styles.input}
-                                placeholder="Enter last name"
+                                value={newService.name}
+                                onChange={(e) => handleInputChange('name', e.target.value)}
+                                style={{
+                                    ...styles.input,
+                                    borderColor: errors.name ? '#dc2626' : '#e5e7eb',
+                                }}
+                                placeholder="e.g., Gel Manicure"
                             />
+                            {errors.name && (
+                                <span style={styles.errorText}>{errors.name}</span>
+                            )}
+                        </div>
+                    </div>
+
+                    <div style={styles.formRow}>
+                        <div style={styles.formGroup}>
+                            <label style={styles.label}>Price ($)</label>
+                            <input
+                                type="text"
+                                value={newService.price}
+                                onChange={(e) => handleInputChange('price', e.target.value)}
+                                style={{
+                                    ...styles.input,
+                                    borderColor: errors.price ? '#dc2626' : '#e5e7eb',
+                                }}
+                                placeholder="0.00"
+                            />
+                            {errors.price && (
+                                <span style={styles.errorText}>{errors.price}</span>
+                            )}
+                        </div>
+
+                        <div style={styles.formGroup}>
+                            <label style={styles.label}>Duration (minutes)</label>
+                            <input
+                                type="text"
+                                value={newService.duration}
+                                onChange={(e) => handleInputChange('duration', e.target.value)}
+                                style={{
+                                    ...styles.input,
+                                    borderColor: errors.duration ? '#dc2626' : '#e5e7eb',
+                                }}
+                                placeholder="30"
+                            />
+                            {errors.duration && (
+                                <span style={styles.errorText}>{errors.duration}</span>
+                            )}
                         </div>
                     </div>
 
                     <div style={styles.formGroup}>
-                        <label style={styles.label}>Email</label>
-                        <input
-                            type="email"
-                            value={newCustomer.email}
-                            onChange={(e) => handleInputChange('email', e.target.value)}
-                            style={{
-                                ...styles.input,
-                                borderColor: errors.email ? '#dc2626' : '#e5e7eb',
-                            }}
-                            placeholder="customer@email.com"
-                        />
-                        {errors.email && (
-                            <span style={styles.errorText}>{errors.email}</span>
-                        )}
-                    </div>
-
-                    <div style={styles.formGroup}>
-                        <label style={styles.label}>Phone</label>
-                        <input
-                            type="tel"
-                            value={newCustomer.phone}
-                            onChange={(e) => handleInputChange('phone', e.target.value)}
-                            style={styles.input}
-                            placeholder="(555) 123-4567"
-                        />
-                    </div>
-
-                    <div style={styles.formGroup}>
-                        <label style={styles.label}>Additional Information</label>
+                        <label style={styles.label}>Description (Optional)</label>
                         <textarea
-                            value={newCustomer.info}
-                            onChange={(e) => handleInputChange('info', e.target.value)}
+                            value={newService.description}
+                            onChange={(e) => handleInputChange('description', e.target.value)}
                             style={styles.textarea}
-                            placeholder="Any additional information about the customer"
+                            placeholder="Brief description of the service"
                             rows="3"
                         />
                     </div>
@@ -155,7 +184,7 @@ export default function CustomerAddModal({ isOpen, onClose, onSave }) {
                         Cancel
                     </button>
                     <button style={styles.saveButton} onClick={handleSubmit}>
-                        Add Customer
+                        Add Service
                     </button>
                 </div>
             </div>
