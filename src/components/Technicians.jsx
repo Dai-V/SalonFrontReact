@@ -72,6 +72,8 @@ export default function Technicians() {
         setShowEditModal(false);
     }
 
+
+
     const getTechs = () => {
         fetch(apiURL + '/technicians/', {
             method: 'GET',

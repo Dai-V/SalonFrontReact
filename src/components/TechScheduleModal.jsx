@@ -7,7 +7,7 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
 
     useEffect(() => {
         if (!techID || !isOpen) return;
-        fetch(apiURL + '/schedules/', {
+        fetch(apiURL + '/technicians/' + techID + '/schedules/', {
             method: 'GET',
             headers: new Headers({
                 'Accept': 'application/json',
@@ -17,8 +17,7 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
         })
             .then(response => response.json())
             .then(data => {
-                setSchedules(data.filter(schedule => schedule.TechID === techID));
-                console.log(schedules)
+                setSchedules(data)
             })
             .catch(error => {
                 console.error('Error fetching schedules:', error);
@@ -162,7 +161,7 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
                             </div>
                         </div>
 
-                        <div style={styles.scheduleList}>
+                        {/* <div style={styles.scheduleList}>
                             <h3 style={styles.listTitle}>All Schedules</h3>
                             {schedules.length === 0 ? (
                                 <p style={styles.emptyText}>No schedules defined</p>
@@ -189,7 +188,7 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
                                         </div>
                                     ))
                             )}
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </div>
