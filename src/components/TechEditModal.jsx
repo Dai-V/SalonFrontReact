@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import TechHistoryModal from './TechHistoryModal.jsx';
+import TechScheduleModal from './TechScheduleModal.jsx';
 
 export default function TechEditModal({ isOpen, onClose, onSave, editTech }) {
     const [tech, setTech] = useState({
@@ -11,6 +12,7 @@ export default function TechEditModal({ isOpen, onClose, onSave, editTech }) {
 
     const [errors, setErrors] = useState({});
     const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [showScheduleModal, setShowScheduleModal] = useState(false);
 
     // Pre-fill form when editTech changes
     useEffect(() => {
@@ -155,7 +157,13 @@ export default function TechEditModal({ isOpen, onClose, onSave, editTech }) {
                             style={styles.historyButton}
                             onClick={() => setShowHistoryModal(true)}
                         >
-                            📋 View History
+                            📋View History
+                        </button>
+                        <button
+                            style={styles.historyButton}
+                            onClick={() => setShowScheduleModal(true)}
+                        >
+                            📅View Schedule
                         </button>
                         <div style={styles.footerRight}>
                             <button style={styles.cancelButton} onClick={handleClose}>
@@ -172,6 +180,11 @@ export default function TechEditModal({ isOpen, onClose, onSave, editTech }) {
             <TechHistoryModal
                 isOpen={showHistoryModal}
                 onClose={() => setShowHistoryModal(false)}
+                techID={editTech?.TechID}
+            />
+            <TechScheduleModal
+                isOpen={showScheduleModal}
+                onClose={() => setShowScheduleModal(false)}
                 techID={editTech?.TechID}
             />
         </>
