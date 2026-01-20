@@ -9,6 +9,13 @@ Appointments:
 + Searchable dropdown for customer while making appointment
 
 Dashboard:
+(Daily, weekly, monthly) 
+Total Appointments for the day
+Appointments closed
+Appointments still open
+Appointments canceled
+
+
 
 Totals:
 + Show totals done by each technician (Name, total amount of Services done, total prices)
