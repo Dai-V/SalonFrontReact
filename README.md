@@ -8,35 +8,49 @@ Appointments:
 + Cancel appointment (By setting status to Cancelled)
 + Searchable dropdown for customer while making appointment
 
-Technicians:
-+ View 
+Dashboard:
+
+Totals:
++ Show totals done by each technician (Name, total amount of Services done, total prices)
+- For today by default
+- For a single date
+- For a range of dates
++ Show totals paid in each payment types
+
+Supplies:
++ View
 + Create
 + Edit
 + Search
+
+
+Technicians:
++ View (Done)
++ Create (Done)
++ Edit (Done)
++ Search (Done)
++ View Schedule (Done)
 + Add Schedule 
-+ Standing Services
-+ Past Services
++ Standing Services (Done)
++ Past Services (Done)
 
 Saved Services:
-+ View
-+ Create
-+ Edit
++ View (Done)
++ Create (Done)
++ Edit (Done)
 + Delete
-+ Search
++ Search (Done)
 
 Customers:
-+ Search
-+ View
-+ Create
-+ Edit 
-+ Standing Services
-+ Past Services
-
-Totals/Reports:
-+ View totals within a range (including single date)
++ Search (Done)
++ View (Done)
++ Create (Done)
++ Edit  (Done)
++ Standing Services (Done)
++ Past Services (Done)
 
 Authentication:
-+ Login
-+ Logout
-+ Signup
++ Login (Done)
++ Logout (Done) 
++ Signup (Done)
 
