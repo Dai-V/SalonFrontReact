@@ -256,11 +256,12 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
                      <div style={styles.confirmOverlay}>
                     <div style={styles.confirmContent}>
                         <div style={styles.confirmTitle}>Confirm Close All Dates</div>
-                        <p style={styles.confirmText}>Are you sure you want to close all dates?</p>
+                        <p style={styles.confirmText}>This will mark all dates as <span style={{color:'#ef4444'}}>UNAVAILABLE</span>.
+Are you sure you want to continue?</p>
                         <div style={styles.confirmButtons}>
                         
-                        <button style={styles.confirmCancel} onClick={() => setShowConfirmation(null)}>No</button>
-                        <button style={styles.confirmOpen} onClick={confirmCloseAll}>Yes</button>
+                        <button style={styles.confirmCancel} onClick={() => setShowConfirmation(null)}>Cancel</button>
+                        <button style={styles.confirmOpen} onClick={confirmCloseAll}>Yes, Close All</button>
                         </div>
                     </div>
                      </div>
@@ -269,11 +270,12 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
                     <div style={styles.confirmOverlay}>
                     <div style={styles.confirmContent}>
                          <div style={styles.confirmTitle}>Confirm Open All Dates</div>
-                        <p style={styles.confirmText}>Are you sure you want to open all dates?</p>
+                        <p style={styles.confirmText}>This will mark all dates as <span style={{color:'#10b981'}}>AVAILABLE</span>.
+Are you sure you want to continue?</p>
                         <div style={styles.confirmButtons}>
-                        
-                        <button style={styles.confirmCancel} onClick={() =>setShowConfirmation(null)}>No</button>
-                        <button style={styles.confirmOpen} onClick={confirmOpenAll}>Yes</button>
+
+                        <button style={styles.confirmCancel} onClick={() =>setShowConfirmation(null)}>Cancel</button>
+                        <button style={styles.confirmOpen} onClick={confirmOpenAll}>Yes, Open All</button>
                         </div>
                     </div>
                      </div>
