@@ -9,7 +9,11 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
 
     useEffect(() => {
         if (!techID || !isOpen) return;
-        fetch(apiURL + '/schedules/', {
+        getSchedules();
+    }, [techID, apiURL, isOpen]);
+
+    const getSchedules = () => {
+         fetch(apiURL + '/schedules/', {
             method: 'GET',
             headers: new Headers({
                 'Accept': 'application/json',
@@ -24,7 +28,8 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
             .catch(error => {
                 console.error('Error fetching schedules:', error);
             });
-    }, [techID, apiURL, isOpen]);
+         }
+
 
     if (!isOpen) return null;
 
@@ -95,25 +100,56 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
         setSelectedMonth(newDate);
     };
 
-    const handleOpenAll = () => {
-        setShowConfirmation('open');
-    };
-
-    const handleCloseAll = () => {
-        setShowConfirmation('close');
-    };
 
     const confirmOpenAll = () => {
-        // API call to open schedule for all dates
-        console.log('Opening schedule for all dates');
-        // Add your API call here
+       fetch (apiURL + '/technicians/' + techID + '/schedules/', {
+            method: 'POST',
+            headers: new Headers({
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': sessionStorage.getItem('csrfToken')
+            }),
+            credentials: 'include',
+            body: JSON.stringify({
+                From: "2000-01-01",
+                To: "2099-12-31",
+                Availability: true,
+                TechID: techID,
+            }),
+        })
+            .then(response => {
+                if (response.ok) {
+                    getSchedules();
+                }
+            }).catch(error => {
+                console.error('Error editing schedules:', error);
+            })
         setShowConfirmation(null);
     };
 
     const confirmCloseAll = () => {
-        // API call to close schedule for all dates
-        console.log('Closing schedule for all dates');
-        // Add your API call here
+        fetch (apiURL + '/technicians/' + techID + '/schedules/', {
+            method: 'POST',
+            headers: new Headers({
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': sessionStorage.getItem('csrfToken')
+            }),
+            credentials: 'include',
+            body: JSON.stringify({
+                From: "2000-01-01",
+                To: "2099-12-31",
+                Availability: false,
+                TechID: techID
+            }),
+             })
+            .then(response => {
+                if (response.ok) {
+                    getSchedules();
+                }
+            }).catch(error => {
+                console.error('Error editing schedules:', error);
+            })
         setShowConfirmation(null);
     };
 
@@ -203,10 +239,10 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
             <div>
                 <div style={styles.actionButtons}>
                     <div>
-                    <button style={styles.openAllButton} onClick={handleOpenAll}>
+                    <button style={styles.openAllButton} onClick={() => setShowConfirmation('open')}>
                         Open All Dates
                         </button>
-                    <button style={styles.closeAllButton} onClick={handleCloseAll}>
+                    <button style={styles.closeAllButton} onClick={() => setShowConfirmation('close')}>
                         Close All Dates
                     </button>
                     </div>
@@ -215,6 +251,34 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
                     </button>
                 </div>
             </div>
+
+                {showConfirmation==='close' && (
+                     <div style={styles.confirmOverlay}>
+                    <div style={styles.confirmContent}>
+                        <div style={styles.confirmTitle}>Confirm Close All Dates</div>
+                        <p style={styles.confirmText}>Are you sure you want to close all dates?</p>
+                        <div style={styles.confirmButtons}>
+                        
+                        <button style={styles.confirmCancel} onClick={() => setShowConfirmation(null)}>No</button>
+                        <button style={styles.confirmOpen} onClick={confirmCloseAll}>Yes</button>
+                        </div>
+                    </div>
+                     </div>
+                )}
+                {showConfirmation==='open' && (
+                    <div style={styles.confirmOverlay}>
+                    <div style={styles.confirmContent}>
+                         <div style={styles.confirmTitle}>Confirm Open All Dates</div>
+                        <p style={styles.confirmText}>Are you sure you want to open all dates?</p>
+                        <div style={styles.confirmButtons}>
+                        
+                        <button style={styles.confirmCancel} onClick={() =>setShowConfirmation(null)}>No</button>
+                        <button style={styles.confirmOpen} onClick={confirmOpenAll}>Yes</button>
+                        </div>
+                    </div>
+                     </div>
+                )}
+           
 
             {/* <div style={styles.scheduleList}>
                 <h3 style={styles.listTitle}>All Schedules</h3>
@@ -528,7 +592,7 @@ const styles = {
     },
     confirmButtons: {
         display: 'flex',
-        gap: '12px',
+        gap: '7px',
         justifyContent: 'flex-end',
     },
     confirmCancel: {
