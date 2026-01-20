@@ -3,11 +3,13 @@ import { useState, useEffect } from 'react';
 export default function TechScheduleModal({ isOpen, onClose, techID }) {
     const [schedules, setSchedules] = useState([]);
     const [selectedMonth, setSelectedMonth] = useState(new Date());
+    const [showConfirmation, setShowConfirmation] = useState(null); // 'open' or 'close'
+    const [showEditModal, setShowEditModal] = useState(false);
     const apiURL = import.meta.env.VITE_API_URL;
 
     useEffect(() => {
         if (!techID || !isOpen) return;
-        fetch(apiURL + '/technicians/' + techID + '/schedules/', {
+        fetch(apiURL + '/schedules/', {
             method: 'GET',
             headers: new Headers({
                 'Accept': 'application/json',
@@ -17,7 +19,7 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
         })
             .then(response => response.json())
             .then(data => {
-                setSchedules(data)
+                setSchedules(data.filter(schedule => schedule.TechID === techID));
             })
             .catch(error => {
                 console.error('Error fetching schedules:', error);
@@ -30,7 +32,7 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
     const getAvailabilityForDate = (date) => {
         // Create date at local midnight for accurate comparison
         const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
+        
         // Filter schedules that include this date
         const applicableSchedules = schedules.filter(schedule => {
             // Parse backend dates as local dates (not UTC)
@@ -38,8 +40,19 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
             const toParts = schedule.To.split('-');
             const from = new Date(fromParts[0], fromParts[1] - 1, fromParts[2]);
             const to = new Date(toParts[0], toParts[1] - 1, toParts[2]);
-
-
+            
+            // Debug logging
+            if (date.getDate() === 3 && date.getMonth() === 7) { // Aug 3
+                console.log('Checking Aug 3:', {
+                    localDate: localDate.toDateString(),
+                    from: from.toDateString(),
+                    to: to.toDateString(),
+                    fromRaw: schedule.From,
+                    toRaw: schedule.To,
+                    inRange: localDate >= from && localDate <= to
+                });
+            }
+            
             return localDate >= from && localDate <= to;
         });
 
@@ -48,7 +61,7 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
         }
 
         // Sort by Created_At (newest first) to get the most recent override
-        applicableSchedules.sort((a, b) =>
+        applicableSchedules.sort((a, b) => 
             new Date(b.Created_At) - new Date(a.Created_At)
         );
 
@@ -82,6 +95,32 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
         setSelectedMonth(newDate);
     };
 
+    const handleOpenAll = () => {
+        setShowConfirmation('open');
+    };
+
+    const handleCloseAll = () => {
+        setShowConfirmation('close');
+    };
+
+    const confirmOpenAll = () => {
+        // API call to open schedule for all dates
+        console.log('Opening schedule for all dates');
+        // Add your API call here
+        setShowConfirmation(null);
+    };
+
+    const confirmCloseAll = () => {
+        // API call to close schedule for all dates
+        console.log('Closing schedule for all dates');
+        // Add your API call here
+        setShowConfirmation(null);
+    };
+
+    const handleEditSchedules = () => {
+        setShowEditModal(true);
+    };
+
     const calendarDays = generateCalendarDays();
     const monthYear = selectedMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
@@ -95,103 +134,119 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
 
                 <div style={styles.modalBody}>
                     <div style={styles.container}>
-                        <div style={styles.header}>
-                            <button style={styles.navButton} onClick={() => changeMonth(-1)}>
-                                ← Prev
-                            </button>
-                            <h2 style={styles.monthTitle}>{monthYear}</h2>
-                            <button style={styles.navButton} onClick={() => changeMonth(1)}>
-                                Next →
-                            </button>
-                        </div>
+            <div style={styles.header}>
+                <button style={styles.navButton} onClick={() => changeMonth(-1)}>
+                    ← Prev
+                </button>
+                <h2 style={styles.monthTitle}>{monthYear}</h2>
+                <button style={styles.navButton} onClick={() => changeMonth(1)}>
+                    Next →
+                </button>
+            </div>
 
-                        <div style={styles.calendar}>
-                            <div style={styles.weekdayHeader}>
-                                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                                    <div key={day} style={styles.weekdayCell}>{day}</div>
-                                ))}
-                            </div>
+            <div style={styles.calendar}>
+                <div style={styles.weekdayHeader}>
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                        <div key={day} style={styles.weekdayCell}>{day}</div>
+                    ))}
+                </div>
 
-                            <div style={styles.daysGrid}>
-                                {calendarDays.map((date, index) => {
-                                    const isCurrentMonth = date.getMonth() === selectedMonth.getMonth();
-                                    const availability = getAvailabilityForDate(date);
-                                    const isToday = date.toDateString() === new Date().toDateString();
+                <div style={styles.daysGrid}>
+                    {calendarDays.map((date, index) => {
+                        const isCurrentMonth = date.getMonth() === selectedMonth.getMonth();
+                        const availability = getAvailabilityForDate(date);
+                        const isToday = date.toDateString() === new Date().toDateString();
 
-                                    return (
-                                        <div
-                                            key={index}
-                                            style={{
-                                                ...styles.dayCell,
-                                                opacity: isCurrentMonth ? 1 : 0.3,
-                                                backgroundColor:
-                                                    availability === true ? '#d1fae5' :
-                                                        availability === false ? '#fee2e2' :
-                                                            '#ffffff',
-                                                border: isToday ? '2px solid #2563eb' : '1px solid #e5e7eb',
-                                            }}
-                                        >
-                                            <span style={styles.dayNumber}>{date.getDate()}</span>
-                                            {availability !== null && (
-                                                <span style={{
-                                                    ...styles.statusBadge,
-                                                    backgroundColor: availability ? '#10b981' : '#ef4444',
-                                                }}>
-                                                    {availability ? 'Available' : 'Unavailable'}
-                                                </span>
-                                            )}
-                                        </div>
-                                    );
-                                })}
+                        return (
+                            <div
+                                key={index}
+                                style={{
+                                    ...styles.dayCell,
+                                    opacity: isCurrentMonth ? 1 : 0.3,
+                                    backgroundColor: 
+                                        availability === true ? '#d1fae5' : 
+                                        availability === false ? '#fee2e2' : 
+                                        '#ffffff',
+                                    border: isToday ? '2px solid #2563eb' : '1px solid #e5e7eb',
+                                }}
+                            >
+                                <span style={styles.dayNumber}>{date.getDate()}</span>
+                                {availability !== null && (
+                                    <span style={{
+                                        ...styles.statusBadge,
+                                        backgroundColor: availability ? '#10b981' : '#ef4444',
+                                    }}>
+                                        {availability ? 'Available' : 'Unavailable'}
+                                    </span>
+                                )}
                             </div>
-                        </div>
-
-                        <div style={styles.legend}>
-                            <div style={styles.legendItem}>
-                                <div style={{ ...styles.legendBox, backgroundColor: '#d1fae5' }}></div>
-                                <span style={styles.legendText}>Available</span>
-                            </div>
-                            <div style={styles.legendItem}>
-                                <div style={{ ...styles.legendBox, backgroundColor: '#fee2e2' }}></div>
-                                <span style={styles.legendText}>Unavailable</span>
-                            </div>
-                            <div style={styles.legendItem}>
-                                <div style={{ ...styles.legendBox, backgroundColor: '#ffffff', border: '1px solid #e5e7eb' }}></div>
-                                <span style={styles.legendText}>No Schedule</span>
-                            </div>
-                        </div>
-
-                        {/* <div style={styles.scheduleList}>
-                            <h3 style={styles.listTitle}>All Schedules</h3>
-                            {schedules.length === 0 ? (
-                                <p style={styles.emptyText}>No schedules defined</p>
-                            ) : (
-                                schedules
-                                    .sort((a, b) => new Date(b.Created_At) - new Date(a.Created_At))
-                                    .map(schedule => (
-                                        <div key={schedule.ScheduleID} style={styles.scheduleCard}>
-                                            <div style={styles.scheduleHeader}>
-                                                <span style={{
-                                                    ...styles.availabilityBadge,
-                                                    backgroundColor: schedule.Availability ? '#d1fae5' : '#fee2e2',
-                                                    color: schedule.Availability ? '#065f46' : '#991b1b',
-                                                }}>
-                                                    {schedule.Availability ? 'Available' : 'Unavailable'}
-                                                </span>
-                                                <span style={styles.dateRange}>
-                                                    {schedule.From} - {schedule.To}
-                                                </span>
-                                            </div>
-                                            <span style={styles.createdAt}>
-                                                Created: {new Date(schedule.Created_At).toLocaleString()}
-                                            </span>
-                                        </div>
-                                    ))
-                            )}
-                        </div> */}
-                    </div>
+                        );
+                    })}
                 </div>
             </div>
+
+            {/* <div style={styles.legend}>
+                <div style={styles.legendItem}>
+                    <div style={{...styles.legendBox, backgroundColor: '#d1fae5'}}></div>
+                    <span style={styles.legendText}>Available</span>
+                </div>
+                <div style={styles.legendItem}>
+                    <div style={{...styles.legendBox, backgroundColor: '#fee2e2'}}></div>
+                    <span style={styles.legendText}>Unavailable</span>
+                </div>
+                <div style={styles.legendItem}>
+                    <div style={{...styles.legendBox, backgroundColor: '#ffffff', border: '1px solid #e5e7eb'}}></div>
+                    <span style={styles.legendText}>No Schedule</span>
+                </div>
+            </div> */}
+
+            <div>
+                <div style={styles.actionButtons}>
+                    <div>
+                    <button style={styles.openAllButton} onClick={handleOpenAll}>
+                        Open All Dates
+                        </button>
+                    <button style={styles.closeAllButton} onClick={handleCloseAll}>
+                        Close All Dates
+                    </button>
+                    </div>
+                    <button style={styles.editButton} onClick={handleEditSchedules}>
+                        Edit Schedules
+                    </button>
+                </div>
+            </div>
+
+            {/* <div style={styles.scheduleList}>
+                <h3 style={styles.listTitle}>All Schedules</h3>
+                {schedules.length === 0 ? (
+                    <p style={styles.emptyText}>No schedules defined</p>
+                ) : (
+                    schedules
+                        .sort((a, b) => new Date(b.Created_At) - new Date(a.Created_At))
+                        .map(schedule => (
+                            <div key={schedule.ScheduleID} style={styles.scheduleCard}>
+                                <div style={styles.scheduleHeader}>
+                                    <span style={{
+                                        ...styles.availabilityBadge,
+                                        backgroundColor: schedule.Availability ? '#d1fae5' : '#fee2e2',
+                                        color: schedule.Availability ? '#065f46' : '#991b1b',
+                                    }}>
+                                        {schedule.Availability ? 'Available' : 'Unavailable'}
+                                    </span>
+                                    <span style={styles.dateRange}>
+                                        {schedule.From} - {schedule.To}
+                                    </span>
+                                </div>
+                                <span style={styles.createdAt}>
+                                    Created: {new Date(schedule.Created_At).toLocaleString()}
+                                </span>
+                            </div>
+                        ))
+                )}
+                    </div> */}
+                </div>
+            </div>
+        </div>
         </div>
     );
 }
@@ -394,5 +449,122 @@ const styles = {
         fontSize: '12px',
         color: '#6b7280',
         fontStyle: 'italic',
+    },
+    actionButtons: {
+        display: 'flex',
+        gap: '12px',
+        justifyContent: 'space-between',
+        marginTop: '20px',
+    },
+    openAllButton: {
+        backgroundColor: '#10b981',
+        color: '#ffffff',
+        border: 'none',
+        borderRadius: '8px',
+        padding: '12px 24px',
+        fontSize: '14px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    },
+    closeAllButton: {
+        backgroundColor: '#ef4444',
+        color: '#ffffff',
+        border: 'none',
+        borderRadius: '8px',
+        padding: '12px 24px',
+        fontSize: '14px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        marginLeft: '10px',
+    },
+    editButton: {
+        backgroundColor: '#2563eb',
+        color: '#ffffff',
+        border: 'none',
+        borderRadius: '8px',
+        padding: '12px 24px',
+        fontSize: '14px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    },
+    confirmOverlay: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1003,
+    },
+    confirmContent: {
+        backgroundColor: '#ffffff',
+        borderRadius: '12px',
+        padding: '24px',
+        width: '90%',
+        maxWidth: '400px',
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    },
+    confirmTitle: {
+        fontSize: '20px',
+        fontWeight: 'bold',
+        color: '#111827',
+        margin: '0 0 12px 0',
+    },
+    confirmText: {
+        fontSize: '14px',
+        color: '#6b7280',
+        margin: '0 0 24px 0',
+        lineHeight: '1.5',
+    },
+    confirmButtons: {
+        display: 'flex',
+        gap: '12px',
+        justifyContent: 'flex-end',
+    },
+    confirmCancel: {
+        backgroundColor: '#ffffff',
+        color: '#374151',
+        border: '1px solid #e5e7eb',
+        borderRadius: '8px',
+        padding: '10px 20px',
+        fontSize: '14px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    },
+    confirmOpen: {
+        backgroundColor: '#10b981',
+        color: '#ffffff',
+        border: 'none',
+        borderRadius: '8px',
+        padding: '10px 20px',
+        fontSize: '14px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    },
+    confirmClose: {
+        backgroundColor: '#ef4444',
+        color: '#ffffff',
+        border: 'none',
+        borderRadius: '8px',
+        padding: '10px 20px',
+        fontSize: '14px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
 };
