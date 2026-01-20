@@ -6,6 +6,7 @@ export default function TechAddModal({ isOpen, onClose, onSave }) {
         email: '',
         phone: '',
         info: '',
+        openSchedules: false,
     });
 
     const [errors, setErrors] = useState({});
@@ -63,12 +64,12 @@ export default function TechAddModal({ isOpen, onClose, onSave }) {
         }
 
         onSave(newTech);
-        setNewTech({ name: '', email: '', phone: '', address: '', info: '' });
+        setNewTech({ name: '', email: '', phone: '', info: '', openSchedules: false });
         setErrors({});
     };
 
     const handleClose = () => {
-        setNewTech({ name: '', email: '', phone: '', address: '', info: '' });
+        setNewTech({ name: '', email: '', phone: '', info: '', openSchedules: false });
         setErrors({});
         onClose();
     };
@@ -134,6 +135,18 @@ export default function TechAddModal({ isOpen, onClose, onSave }) {
                             placeholder="Any additional information about the tech"
                             rows="3"
                         />
+                    </div>
+
+                    <div style={styles.checkboxGroup}>
+                        <label style={styles.checkboxLabel}>
+                            <input
+                                type="checkbox"
+                                checked={newTech.openSchedules}
+                                onChange={(e) => handleInputChange('openSchedules', e.target.checked)}
+                                style={styles.checkbox}
+                            />
+                            <span style={styles.checkboxText}>Automatically open all schedules</span>
+                        </label>
                     </div>
                 </div>
 
@@ -245,6 +258,27 @@ const styles = {
         resize: 'vertical',
         minHeight: '60px',
         color: 'black',
+    },
+    checkboxGroup: {
+        marginBottom: '20px',
+        borderRadius: '8px',
+    },
+    checkboxLabel: {
+        display: 'flex',
+        alignItems: 'center',
+        cursor: 'pointer',
+    },
+    checkbox: {
+        width: '18px',
+        height: '18px',
+        marginRight: '10px',
+        cursor: 'pointer',
+        accentColor: '#2563eb',
+    },
+    checkboxText: {
+        fontSize: '14px',
+        color: '#374151',
+        fontWeight: '500',
     },
     modalFooter: {
         display: 'flex',

@@ -35,16 +35,43 @@ export default function Technicians() {
                 TechPhone: techData.phone,
                 TechEmail: techData.email,
                 TechInfo: techData.info,
-                TechAddress: techData.address
+                TechAddress: techData.address,
             })
         }
         ).then(response => {
             if (response.ok) {
                 getTechs()
+                return response.json();
             }
-            return response.json();
+        }).then (data => {
+            if (techData.openSchedules)
+                openSchedulesForNewTech(data.TechID)
         })
+
         setShowAddModal(false);
+    };
+
+    const openSchedulesForNewTech = (techID) => {
+        const today = new Date();
+        fetch(apiURL + '/technicians/' + techID + '/schedules/', {
+            method: 'POST',
+            headers: new Headers({
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': sessionStorage.getItem('csrfToken')
+            }),
+            credentials: 'include',
+            body: JSON.stringify({
+                From: '2000-01-01',
+                To: "2099-12-31",
+                Availability: true,
+                TechID: techID
+            })
+        }).then(response => {
+            if (response.ok) {
+                console.log("Schedules opened for new tech")
+            }
+        })
     };
 
     const handleEditTech = (techData) => {
