@@ -5,6 +5,8 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
     const [selectedMonth, setSelectedMonth] = useState(new Date());
     const [showConfirmation, setShowConfirmation] = useState(null); // 'open' or 'close'
     const [showEditModal, setShowEditModal] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [showDateConfirmation, setShowDateConfirmation] = useState(false);
     const apiURL = import.meta.env.VITE_API_URL;
 
     useEffect(() => {
@@ -13,7 +15,7 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
     }, [techID, apiURL, isOpen]);
 
     const getSchedules = () => {
-         fetch(apiURL + '/schedules/', {
+        fetch(apiURL + '/schedules/', {
             method: 'GET',
             headers: new Headers({
                 'Accept': 'application/json',
@@ -28,7 +30,7 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
             .catch(error => {
                 console.error('Error fetching schedules:', error);
             });
-         }
+    }
 
 
     if (!isOpen) return null;
@@ -37,7 +39,7 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
     const getAvailabilityForDate = (date) => {
         // Create date at local midnight for accurate comparison
         const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-        
+
         // Filter schedules that include this date
         const applicableSchedules = schedules.filter(schedule => {
             // Parse backend dates as local dates (not UTC)
@@ -45,7 +47,7 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
             const toParts = schedule.To.split('-');
             const from = new Date(fromParts[0], fromParts[1] - 1, fromParts[2]);
             const to = new Date(toParts[0], toParts[1] - 1, toParts[2]);
-            
+
             // Debug logging
             if (date.getDate() === 3 && date.getMonth() === 7) { // Aug 3
                 console.log('Checking Aug 3:', {
@@ -57,7 +59,7 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
                     inRange: localDate >= from && localDate <= to
                 });
             }
-            
+
             return localDate >= from && localDate <= to;
         });
 
@@ -66,7 +68,7 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
         }
 
         // Sort by Created_At (newest first) to get the most recent override
-        applicableSchedules.sort((a, b) => 
+        applicableSchedules.sort((a, b) =>
             new Date(b.Created_At) - new Date(a.Created_At)
         );
 
@@ -102,7 +104,7 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
 
 
     const confirmOpenAll = () => {
-       fetch (apiURL + '/technicians/' + techID + '/schedules/', {
+        fetch(apiURL + '/technicians/' + techID + '/schedules/', {
             method: 'POST',
             headers: new Headers({
                 'Accept': 'application/json',
@@ -128,7 +130,7 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
     };
 
     const confirmCloseAll = () => {
-        fetch (apiURL + '/technicians/' + techID + '/schedules/', {
+        fetch(apiURL + '/technicians/' + techID + '/schedules/', {
             method: 'POST',
             headers: new Headers({
                 'Accept': 'application/json',
@@ -142,7 +144,7 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
                 Availability: false,
                 TechID: techID
             }),
-             })
+        })
             .then(response => {
                 if (response.ok) {
                     getSchedules();
@@ -155,6 +157,45 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
 
     const handleEditSchedules = () => {
         setShowEditModal(true);
+    };
+
+    const handleDayClick = (date, currentAvailability) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const dateStr = `${year}/${month}/${day}`;
+        setSelectedDate({ dateStr, currentAvailability });
+        setShowDateConfirmation(true);
+    };
+
+    const confirmDateToggle = () => {
+        const dateStr = selectedDate.dateStr.replace(/\//g, '-')
+        fetch(apiURL + '/technicians/' + techID + '/schedules/', {
+            method: 'POST',
+            headers: new Headers({
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': sessionStorage.getItem('csrfToken')
+            }),
+            credentials: 'include',
+            body: JSON.stringify({
+                From: dateStr,
+                To: dateStr,
+                Availability: selectedDate.currentAvailability === null ? true : !selectedDate.currentAvailability,
+                TechID: techID,
+            }),
+        })
+            .then(response => {
+                if (response.ok) {
+                    getSchedules();
+                }
+            })
+            .catch(error => {
+                console.error('Error updating schedule:', error);
+            });
+
+        setShowDateConfirmation(false);
+        setSelectedDate(null);
     };
 
     const calendarDays = generateCalendarDays();
@@ -170,149 +211,134 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
 
                 <div style={styles.modalBody}>
                     <div style={styles.container}>
-            <div style={styles.header}>
-                <button style={styles.navButton} onClick={() => changeMonth(-1)}>
-                    ← Prev
-                </button>
-                <h2 style={styles.monthTitle}>{monthYear}</h2>
-                <button style={styles.navButton} onClick={() => changeMonth(1)}>
-                    Next →
-                </button>
-            </div>
+                        <div style={styles.header}>
+                            <button style={styles.navButton} onClick={() => changeMonth(-1)}>
+                                ← Prev
+                            </button>
+                            <h2 style={styles.monthTitle}>{monthYear}</h2>
+                            <button style={styles.navButton} onClick={() => changeMonth(1)}>
+                                Next →
+                            </button>
+                        </div>
 
-            <div style={styles.calendar}>
-                <div style={styles.weekdayHeader}>
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                        <div key={day} style={styles.weekdayCell}>{day}</div>
-                    ))}
-                </div>
-
-                <div style={styles.daysGrid}>
-                    {calendarDays.map((date, index) => {
-                        const isCurrentMonth = date.getMonth() === selectedMonth.getMonth();
-                        const availability = getAvailabilityForDate(date);
-                        const isToday = date.toDateString() === new Date().toDateString();
-
-                        return (
-                            <div
-                                key={index}
-                                style={{
-                                    ...styles.dayCell,
-                                    opacity: isCurrentMonth ? 1 : 0.3,
-                                    backgroundColor: 
-                                        availability === true ? '#d1fae5' : 
-                                        availability === false ? '#fee2e2' : 
-                                        '#ffffff',
-                                    border: isToday ? '2px solid #2563eb' : '1px solid #e5e7eb',
-                                }}
-                            >
-                                <span style={styles.dayNumber}>{date.getDate()}</span>
-                                {availability !== null && (
-                                    <span style={{
-                                        ...styles.statusBadge,
-                                        backgroundColor: availability ? '#10b981' : '#ef4444',
-                                    }}>
-                                        {availability ? 'Available' : 'Unavailable'}
-                                    </span>
-                                )}
+                        <div style={styles.calendar}>
+                            <div style={styles.weekdayHeader}>
+                                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                                    <div key={day} style={styles.weekdayCell}>{day}</div>
+                                ))}
                             </div>
-                        );
-                    })}
-                </div>
-            </div>
 
-            {/* <div style={styles.legend}>
-                <div style={styles.legendItem}>
-                    <div style={{...styles.legendBox, backgroundColor: '#d1fae5'}}></div>
-                    <span style={styles.legendText}>Available</span>
-                </div>
-                <div style={styles.legendItem}>
-                    <div style={{...styles.legendBox, backgroundColor: '#fee2e2'}}></div>
-                    <span style={styles.legendText}>Unavailable</span>
-                </div>
-                <div style={styles.legendItem}>
-                    <div style={{...styles.legendBox, backgroundColor: '#ffffff', border: '1px solid #e5e7eb'}}></div>
-                    <span style={styles.legendText}>No Schedule</span>
-                </div>
-            </div> */}
+                            <div style={styles.daysGrid}>
+                                {calendarDays.map((date, index) => {
+                                    const isCurrentMonth = date.getMonth() === selectedMonth.getMonth();
+                                    const availability = getAvailabilityForDate(date);
+                                    const isToday = date.toDateString() === new Date().toDateString();
 
-            <div>
-                <div style={styles.actionButtons}>
-                    <div>
-                    <button style={styles.openAllButton} onClick={() => setShowConfirmation('open')}>
-                        Open All Dates
-                        </button>
-                    <button style={styles.closeAllButton} onClick={() => setShowConfirmation('close')}>
-                        Close All Dates
-                    </button>
-                    </div>
-                    <button style={styles.editButton} onClick={handleEditSchedules}>
-                        Edit Schedules
-                    </button>
-                </div>
-            </div>
-
-                {showConfirmation==='close' && (
-                     <div style={styles.confirmOverlay}>
-                    <div style={styles.confirmContent}>
-                        <div style={styles.confirmTitle}>Confirm Close All Dates</div>
-                        <p style={styles.confirmText}>This will mark all dates as <span style={{color:'#ef4444'}}>UNAVAILABLE</span>.
-Are you sure you want to continue?</p>
-                        <div style={styles.confirmButtons}>
-                        
-                        <button style={styles.confirmCancel} onClick={() => setShowConfirmation(null)}>Cancel</button>
-                        <button style={styles.confirmOpen} onClick={confirmCloseAll}>Yes, Close All</button>
+                                    return (
+                                        <div
+                                            key={index}
+                                            style={{
+                                                ...styles.dayCell,
+                                                opacity: isCurrentMonth ? 1 : 0.3,
+                                                backgroundColor:
+                                                    availability === true ? '#d1fae5' :
+                                                        availability === false ? '#fee2e2' :
+                                                            '#ffffff',
+                                                border: isToday ? '2px solid #2563eb' : '1px solid #e5e7eb',
+                                                cursor: 'pointer',
+                                            }}
+                                            onClick={() => handleDayClick(date, availability)}
+                                        >
+                                            <span style={styles.dayNumber}>{date.getDate()}</span>
+                                            {availability !== null && (
+                                                <span style={{
+                                                    ...styles.statusBadge,
+                                                    backgroundColor: availability ? '#10b981' : '#ef4444',
+                                                }}>
+                                                    {availability ? 'Available' : 'Unavailable'}
+                                                </span>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
-                    </div>
-                     </div>
-                )}
-                {showConfirmation==='open' && (
-                    <div style={styles.confirmOverlay}>
-                    <div style={styles.confirmContent}>
-                         <div style={styles.confirmTitle}>Confirm Open All Dates</div>
-                        <p style={styles.confirmText}>This will mark all dates as <span style={{color:'#10b981'}}>AVAILABLE</span>.
-Are you sure you want to continue?</p>
-                        <div style={styles.confirmButtons}>
 
-                        <button style={styles.confirmCancel} onClick={() =>setShowConfirmation(null)}>Cancel</button>
-                        <button style={styles.confirmOpen} onClick={confirmOpenAll}>Yes, Open All</button>
-                        </div>
-                    </div>
-                     </div>
-                )}
-           
-
-            {/* <div style={styles.scheduleList}>
-                <h3 style={styles.listTitle}>All Schedules</h3>
-                {schedules.length === 0 ? (
-                    <p style={styles.emptyText}>No schedules defined</p>
-                ) : (
-                    schedules
-                        .sort((a, b) => new Date(b.Created_At) - new Date(a.Created_At))
-                        .map(schedule => (
-                            <div key={schedule.ScheduleID} style={styles.scheduleCard}>
-                                <div style={styles.scheduleHeader}>
-                                    <span style={{
-                                        ...styles.availabilityBadge,
-                                        backgroundColor: schedule.Availability ? '#d1fae5' : '#fee2e2',
-                                        color: schedule.Availability ? '#065f46' : '#991b1b',
-                                    }}>
-                                        {schedule.Availability ? 'Available' : 'Unavailable'}
-                                    </span>
-                                    <span style={styles.dateRange}>
-                                        {schedule.From} - {schedule.To}
-                                    </span>
+                        <div>
+                            <div style={styles.actionButtons}>
+                                <div>
+                                    <button style={styles.openAllButton} onClick={() => setShowConfirmation('open')}>
+                                        Open All Dates
+                                    </button>
+                                    <button style={styles.closeAllButton} onClick={() => setShowConfirmation('close')}>
+                                        Close All Dates
+                                    </button>
                                 </div>
-                                <span style={styles.createdAt}>
-                                    Created: {new Date(schedule.Created_At).toLocaleString()}
-                                </span>
+                                <button style={styles.editButton} onClick={handleEditSchedules}>
+                                    Edit Schedules
+                                </button>
                             </div>
-                        ))
-                )}
-                    </div> */}
+                        </div>
+
+                        {showConfirmation === 'close' && (
+                            <div style={styles.confirmOverlay}>
+                                <div style={styles.confirmContent}>
+                                    <div style={styles.confirmTitle}>Confirm Close All Dates</div>
+                                    <p style={styles.confirmText}>
+                                        Are you sure you want to mark{" "}
+                                        <strong>all dates</strong> as{" "}
+                                        <span style={{ color: '#ef4444' }}>unavailable</span>?
+                                    </p>
+                                    <div style={styles.confirmButtons}>
+
+                                        <button style={styles.confirmCancel} onClick={() => setShowConfirmation(null)}>Cancel</button>
+                                        <button style={styles.confirmOpen} onClick={confirmCloseAll}>Confirm</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {showConfirmation === 'open' && (
+                            <div style={styles.confirmOverlay}>
+                                <div style={styles.confirmContent}>
+                                    <div style={styles.confirmTitle}>Confirm Open All Dates</div>
+                                    <p style={styles.confirmText}>
+                                        Are you sure you want to mark{" "}
+                                        <strong>all dates</strong> as{" "}
+                                        <span style={{ color: '#10b981' }}>available</span>?
+                                    </p>
+                                    <div style={styles.confirmButtons}>
+
+                                        <button style={styles.confirmCancel} onClick={() => setShowConfirmation(null)}>Cancel</button>
+                                        <button style={styles.confirmOpen} onClick={confirmOpenAll}>Confirm</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {showDateConfirmation === true && (
+                            <div style={styles.confirmOverlay}>
+                                <div style={styles.confirmContent}>
+                                    <div style={styles.confirmTitle}>Confirm</div>
+                                    <p style={styles.confirmText}>
+                                        Are you sure you want to mark{" "}
+                                        <strong>{selectedDate.dateStr}</strong> as{" "}
+                                        {!selectedDate.currentAvailability ? (
+                                            <span style={{ color: '#10b981' }}>available</span>
+                                        ) : (
+                                            <span style={{ color: '#ef4444' }}>unavailable</span>
+                                        )}
+                                        ?
+                                    </p>
+                                    <div style={styles.confirmButtons}>
+
+                                        <button style={styles.confirmCancel} onClick={() => setShowDateConfirmation(false)}>Cancel</button>
+                                        <button style={styles.confirmOpen} onClick={confirmDateToggle}>Confirm</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
         </div>
     );
 }
@@ -447,74 +473,6 @@ const styles = {
         color: '#ffffff',
         padding: '2px 6px',
         borderRadius: '4px',
-    },
-    legend: {
-        display: 'flex',
-        gap: '20px',
-        marginBottom: '30px',
-        padding: '16px',
-        backgroundColor: '#f9fafb',
-        borderRadius: '8px',
-    },
-    legendItem: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-    },
-    legendBox: {
-        width: '20px',
-        height: '20px',
-        borderRadius: '4px',
-    },
-    legendText: {
-        fontSize: '14px',
-        color: '#374151',
-    },
-    scheduleList: {
-        backgroundColor: '#ffffff',
-        borderRadius: '12px',
-        border: '1px solid #e5e7eb',
-        padding: '20px',
-    },
-    listTitle: {
-        fontSize: '18px',
-        fontWeight: 'bold',
-        color: '#111827',
-        margin: '0 0 16px 0',
-    },
-    emptyText: {
-        color: '#6b7280',
-        fontSize: '14px',
-    },
-    scheduleCard: {
-        padding: '12px',
-        backgroundColor: '#f9fafb',
-        borderRadius: '8px',
-        marginBottom: '12px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-    },
-    scheduleHeader: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    availabilityBadge: {
-        fontSize: '12px',
-        fontWeight: '600',
-        padding: '4px 10px',
-        borderRadius: '12px',
-    },
-    dateRange: {
-        fontSize: '14px',
-        fontWeight: '500',
-        color: '#374151',
-    },
-    createdAt: {
-        fontSize: '12px',
-        color: '#6b7280',
-        fontStyle: 'italic',
     },
     actionButtons: {
         display: 'flex',
