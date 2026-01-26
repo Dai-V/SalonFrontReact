@@ -43,7 +43,7 @@ export default function Technicians() {
                 getTechs()
                 return response.json();
             }
-        }).then (data => {
+        }).then(data => {
             if (techData.openSchedules)
                 openSchedulesForNewTech(data.TechID)
         })

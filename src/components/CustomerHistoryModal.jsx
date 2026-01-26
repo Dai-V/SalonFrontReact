@@ -95,7 +95,7 @@ export default function CustomerHistoryModal({ isOpen, onClose, customerID }) {
                                                 >
                                                     <div style={styles.appointmentMainInfo}>
                                                         <span style={styles.appointmentDate}>
-                                                            {new Date(appointment.AppDate).toLocaleDateString('en-US', {
+                                                            {new Date(appointment.AppDate + 'T00:00:00').toLocaleDateString('en-US', {
                                                                 weekday: 'short',
                                                                 year: 'numeric',
                                                                 month: 'short',
@@ -125,9 +125,9 @@ export default function CustomerHistoryModal({ isOpen, onClose, customerID }) {
                                                                     <span style={styles.serviceTime}>
                                                                         {service.ServiceStartTime}
                                                                     </span>
-                                                                    {service.TechID && service.TechID.TechName && (
+                                                                    {service.TechID && service.TechName && (
                                                                         <p style={styles.techName}>
-                                                                            👨‍🔧 {service.TechID.TechName}
+                                                                            👨‍🔧 {service.TechName}
                                                                         </p>
                                                                     )}
                                                                     <span style={styles.serviceCode}>
@@ -169,7 +169,7 @@ export default function CustomerHistoryModal({ isOpen, onClose, customerID }) {
                                                 >
                                                     <div style={styles.appointmentMainInfo}>
                                                         <span style={styles.appointmentDate}>
-                                                            {new Date(appointment.AppDate).toLocaleDateString('en-US', {
+                                                            {new Date(appointment.AppDate + 'T00:00:00').toLocaleDateString('en-US', {
                                                                 weekday: 'short',
                                                                 year: 'numeric',
                                                                 month: 'short',
@@ -199,9 +199,9 @@ export default function CustomerHistoryModal({ isOpen, onClose, customerID }) {
                                                                     <span style={styles.serviceTime}>
                                                                         {service.ServiceStartTime}
                                                                     </span>
-                                                                    {service.TechID && service.TechID.TechName && (
+                                                                    {service.TechID && service.TechName && (
                                                                         <p style={styles.techName}>
-                                                                            👨‍🔧 {service.TechID.TechName}
+                                                                            👨‍🔧 {service.TechName}
                                                                         </p>
                                                                     )}
                                                                     <span style={styles.serviceCode}>

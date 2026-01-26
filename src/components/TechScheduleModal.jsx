@@ -48,17 +48,6 @@ export default function TechScheduleModal({ isOpen, onClose, techID }) {
             const from = new Date(fromParts[0], fromParts[1] - 1, fromParts[2]);
             const to = new Date(toParts[0], toParts[1] - 1, toParts[2]);
 
-            // Debug logging
-            if (date.getDate() === 3 && date.getMonth() === 7) { // Aug 3
-                console.log('Checking Aug 3:', {
-                    localDate: localDate.toDateString(),
-                    from: from.toDateString(),
-                    to: to.toDateString(),
-                    fromRaw: schedule.From,
-                    toRaw: schedule.To,
-                    inRange: localDate >= from && localDate <= to
-                });
-            }
 
             return localDate >= from && localDate <= to;
         });

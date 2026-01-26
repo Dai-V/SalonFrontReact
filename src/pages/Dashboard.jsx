@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import NavBar from '../components/NavBar.jsx';
 import Customers from '../components/Customers.jsx';
 import Technicians from '../components/Technicians.jsx';
+import Appointments from '../components/Appointments.jsx';
 import { Link, useNavigate } from "react-router-dom"
 import SavedServices from '../components/SavedServices.jsx';
 
@@ -31,6 +32,8 @@ export default function Dashboard() {
         }
         if (activePage === 'Saved Services')
             setActiveContent(<SavedServices />)
+        if (activePage === 'Appointments')
+            setActiveContent(<Appointments />)
         getCsrfToken()
     }, [activePage]);
 

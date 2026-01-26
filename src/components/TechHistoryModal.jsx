@@ -95,7 +95,7 @@ export default function TechHistoryModal({ isOpen, onClose, techID }) {
                                                 >
                                                     <div style={styles.appointmentMainInfo}>
                                                         <span style={styles.appointmentDate}>
-                                                            {new Date(appointment.AppDate).toLocaleDateString('en-US', {
+                                                            {new Date(appointment.AppDate + 'T00:00:00').toLocaleDateString('en-US', {
                                                                 weekday: 'short',
                                                                 year: 'numeric',
                                                                 month: 'short',
@@ -170,7 +170,7 @@ export default function TechHistoryModal({ isOpen, onClose, techID }) {
                                                 >
                                                     <div style={styles.appointmentMainInfo}>
                                                         <span style={styles.appointmentDate}>
-                                                            {new Date(appointment.AppDate).toLocaleDateString('en-US', {
+                                                            {new Date(appointment.AppDate + 'T00:00:00').toLocaleDateString('en-US', {
                                                                 weekday: 'short',
                                                                 year: 'numeric',
                                                                 month: 'short',
