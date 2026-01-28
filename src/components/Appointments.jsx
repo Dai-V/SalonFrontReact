@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 import React from 'react';
+import AppointmentAddModal from './AppointmentAddModal';
 
 export default function Appointments({ selectedDate = new Date() }) {
     const [technicians, setTechnicians] = useState([]);
     const [appointments, setAppointments] = useState([]);
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [clickedTime, setClickedTime] = useState('');
+    const [clickedTechID, setClickedTechID] = useState('');
     const [loading, setLoading] = useState(false);
     const apiURL = import.meta.env.VITE_API_URL;
     const tableContainerRef = React.useRef(null);
@@ -63,6 +67,10 @@ export default function Appointments({ selectedDate = new Date() }) {
         const position = (minutesSince6AM / 15) * rowHeight + headerHeight;
 
         return position;
+    };
+
+    const handleAddAppointment = () => {
+
     };
 
     const fetchTechnicians = async () => {
@@ -187,8 +195,8 @@ export default function Appointments({ selectedDate = new Date() }) {
                                                 // Render appointment cell
                                                 if (cellInfo?.result) {
                                                     const { appointment, service } = cellInfo.result;
-                                                    const customerName = appointment.Customer
-                                                        ? `${appointment.Customer.CustomerFirstName || ''} ${appointment.Customer.CustomerLastName || ''}`.trim()
+                                                    const customerName = appointment.CustomerID
+                                                        ? `${appointment.CustomerID.CustomerFirstName || ''} ${appointment.CustomerID.CustomerLastName || ''}`.trim()
                                                         : 'Unknown Customer';
 
                                                     return (
@@ -198,6 +206,7 @@ export default function Appointments({ selectedDate = new Date() }) {
                                                             style={styles.appointmentCell}
                                                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#93c5fd'}
                                                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#dbeafe'}
+
                                                         >
                                                             <div style={styles.appointmentClient}>{customerName}</div>
                                                             <div style={styles.appointmentService}>{service.ServiceName}</div>
@@ -216,6 +225,11 @@ export default function Appointments({ selectedDate = new Date() }) {
                                                         }}
                                                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e0f2fe'}
                                                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = (isHourMark || isHalfHour) ? '#f9fafb' : 'transparent'}
+                                                        onClick={() => {
+                                                            setClickedTime(slot.time)
+                                                            setClickedTechID(tech.TechID)
+                                                            setShowAddModal(true)
+                                                        }}
                                                     >
                                                     </td>
                                                 );
@@ -225,6 +239,7 @@ export default function Appointments({ selectedDate = new Date() }) {
                                 })}
                             </tbody>
                         </table>
+
 
                         {getCurrentTimePosition() !== null && (
                             <div style={{
@@ -248,10 +263,18 @@ export default function Appointments({ selectedDate = new Date() }) {
                                 }}></div>
                             </div>
                         )}
+                        <AppointmentAddModal
+                            isOpen={showAddModal}
+                            onClose={() => setShowAddModal(false)}
+                            onSave={(handleAddAppointment)}
+                            prefilledTechID={clickedTechID}
+                            prefilledTime={clickedTime}
+                        // selectedDate={selectedDate}
+                        />
                     </>
                 )}
             </div>
-        </div>
+        </div >
     );
 }
 
@@ -343,7 +366,7 @@ const styles = {
         color: '#374151',
         backgroundColor: '#dbeafe',
         border: '2px solid #3b82f6',
-        verticalAlign: 'top',
+        verticalAlign: 'center',
     },
     appointmentClient: {
         fontWeight: '500',
