@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import React from 'react';
 import AppointmentAddModal from './AppointmentAddModal';
+import Calendar from './Calendar.jsx';
 
-export default function Appointments({ selectedDate = new Date() }) {
+export default function Appointments() {
     const [technicians, setTechnicians] = useState([]);
     const [appointments, setAppointments] = useState([]);
     const [showAddModal, setShowAddModal] = useState(false);
     const [clickedTime, setClickedTime] = useState('');
     const [clickedTechID, setClickedTechID] = useState('');
+    const [selectedDate, setSelectedDate] = useState(new Date());
     const [loading, setLoading] = useState(false);
     const apiURL = import.meta.env.VITE_API_URL;
     const tableContainerRef = React.useRef(null);
@@ -27,10 +29,18 @@ export default function Appointments({ selectedDate = new Date() }) {
 
     const timeSlots = generateTimeSlots();
 
+    const formatDateForAPI = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+
     // Fetch technicians for selected date
     useEffect(() => {
         fetchTechnicians();
-    }, []);
+    }, [selectedDate]);
 
     // Scroll to current time slot on mount
     useEffect(() => {
@@ -73,10 +83,11 @@ export default function Appointments({ selectedDate = new Date() }) {
 
     };
 
+
     const fetchTechnicians = async () => {
         setLoading(true);
         try {
-            const dateStr = selectedDate.toISOString().split('T')[0];
+            const dateStr = formatDateForAPI(selectedDate);
             const response = await fetch(`${apiURL}/technicians/?Date=${dateStr}`, {
                 method: 'GET',
                 headers: new Headers({
@@ -88,7 +99,7 @@ export default function Appointments({ selectedDate = new Date() }) {
             const data = await response.json();
             setTechnicians(data);
 
-            const apptResponse = await fetch(`${apiURL}/appointments/?Date=2026-01-24`, {
+            const apptResponse = await fetch(`${apiURL}/appointments/?Date=${dateStr}`, {
                 method: 'GET',
                 headers: new Headers({
                     'Accept': 'application/json',
@@ -147,6 +158,13 @@ export default function Appointments({ selectedDate = new Date() }) {
 
     return (
         <div style={styles.container}>
+            <Calendar
+                selectedDate={selectedDate}
+                onDateChange={(date) => {
+                    setSelectedDate(date)
+                }
+                }
+            />
             <div style={styles.tableContainer} ref={tableContainerRef}>
                 {loading ? (
                     <div style={styles.loadingContainer}>
@@ -269,8 +287,9 @@ export default function Appointments({ selectedDate = new Date() }) {
                             onSave={(handleAddAppointment)}
                             prefilledTechID={clickedTechID}
                             prefilledTime={clickedTime}
-                        // selectedDate={selectedDate}
+                            selectedDate={selectedDate}
                         />
+
                     </>
                 )}
             </div>
