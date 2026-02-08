@@ -5,19 +5,17 @@ import 'react-datepicker/dist/react-datepicker.css';
 export default function Calendar({ selectedDate, onDateChange }) {
     const [showCalendar, setShowCalendar] = useState(false);
     const calendarRef = useRef(null);
-    useEffect(() => {
-        function handleClickOutside(event) {
-            if (
-                calendarRef.current &&
-                !calendarRef.current.contains(event.target)
-            ) {
-                setShowCalendar(false);
-            }
+
+    function handleClickOutside(event) {
+        if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+            setShowCalendar(false);
         }
+    }
+
+    useEffect(() => {
         if (showCalendar) {
             document.addEventListener('mousedown', handleClickOutside);
         }
-
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
@@ -31,59 +29,54 @@ export default function Calendar({ selectedDate, onDateChange }) {
 
     return (
         <div ref={calendarRef} style={styles.container}>
-            <div style={styles.header}>
-                <div style={styles.dateRowWrapper}>
-                    {showCalendar &&
-                        <div style={styles.calendarSection}>
-                            <DatePicker
-                                selected={selectedDate}
-                                onChange={(date) => {
-                                    onDateChange(date)
-                                }}
-                                dateFormat="MMMM d, yyyy"
-                                inline
-                                calendarClassName="custom-calendar"
-                            />
-                        </div>
-                    }
+            <div style={styles.dateRowWrapper}>
+                {showCalendar &&
+                    <div style={styles.calendarSection}>
+                        <DatePicker
+                            selected={selectedDate}
+                            onChange={(date) => {
+                                onDateChange(date)
+                            }}
+                            dateFormat="MMMM d, yyyy"
+                            inline
+                        />
+                    </div>
+                }
 
-                    <div style={styles.infoSection}>
-                        <div style={styles.selectedDateDisplay}>
-                            <div style={styles.dateRow}>
-                                <button
-                                    style={styles.arrow}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        changeDateBy(-1);
-                                        setShowCalendar(false)
-                                    }}
-                                    aria-label="Previous day"
-                                >
-                                    ◀
-                                </button>
-                                <div style={styles.dateValue} onClick={() => setShowCalendar(!showCalendar)}>
-                                    {selectedDate.toLocaleDateString('en-US', {
-                                        weekday: 'long',
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric'
-                                    })}
-                                </div> <button
-                                    style={styles.arrow}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        changeDateBy(1);
-                                        setShowCalendar(false)
-                                    }}
-                                    aria-label="Next day"
-                                >
-                                    ▶
-                                </button>
-                            </div>
+                <div style={styles.infoSection}>
+                    <div style={styles.selectedDateDisplay}>
+                        <div style={styles.dateRow}>
+                            <button
+                                style={styles.arrow}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    changeDateBy(-1);
+                                    setShowCalendar(false)
+                                }}
+                            >
+                                ◀
+                            </button>
+                            <div style={styles.dateValue} onClick={() => setShowCalendar(!showCalendar)}>
+                                {selectedDate.toLocaleDateString('en-US', {
+                                    weekday: 'long',
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                })}
+                            </div> <button
+                                style={styles.arrow}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    changeDateBy(1);
+                                    setShowCalendar(false)
+                                }}
+                            >
+                                ▶
+                            </button>
                         </div>
                     </div>
-
                 </div>
+
             </div>
         </div>
     );
@@ -105,13 +98,13 @@ const styles = {
 
     calendarSection: {
         position: 'absolute',
-        top: '100%',          // 👈 directly below dateValue
+        top: '100%',
         left: '50%',
         transform: 'translateX(-50%)',
-        marginTop: '8px',
+        marginTop: '10px',
         zIndex: 1000,
         backgroundColor: '#ffffff',
-        boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+        boxShadow: '0 10px 25px rgba(0,0,0,0))',
         borderRadius: '8px',
     },
     label: {

@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import React from 'react';
 import AppointmentAddModal from './AppointmentAddModal';
+import AppointmentEditModal from './AppointmentEditModal';
 import Calendar from './Calendar.jsx';
 
 export default function Appointments() {
     const [technicians, setTechnicians] = useState([]);
     const [appointments, setAppointments] = useState([]);
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [clickedTime, setClickedTime] = useState('');
     const [clickedTechID, setClickedTechID] = useState('');
+    const [clickedAppointment, setClickedAppointment] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [loading, setLoading] = useState(false);
     const apiURL = import.meta.env.VITE_API_URL;
@@ -79,8 +82,38 @@ export default function Appointments() {
         return position;
     };
 
-    const handleAddAppointment = () => {
+    const handleAddAppointment = (appointmentData) => {
+        fetch(`${apiURL}/appointments/`, {
+            method: 'POST',
+            headers: new Headers({
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': sessionStorage.getItem('csrfToken')
+            }),
+            credentials: 'include',
+            body: JSON.stringify(appointmentData)
+        }).then(response => {
+            if (response.ok) {
+                fetchTechnicians();
+            }
+        });
+    };
 
+    const handleEditAppointment = (appointmentData) => {
+        fetch(`${apiURL}/appointments/${clickedAppointment.AppID}/`, {
+            method: 'PUT',
+            headers: new Headers({
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': sessionStorage.getItem('csrfToken')
+            }),
+            credentials: 'include',
+            body: JSON.stringify(appointmentData)
+        }).then(response => {
+            if (response.ok) {
+                fetchTechnicians();
+            }
+        });
     };
 
 
@@ -224,6 +257,10 @@ export default function Appointments() {
                                                             style={styles.appointmentCell}
                                                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#93c5fd'}
                                                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#dbeafe'}
+                                                            onClick={() => {
+                                                                setClickedAppointment(appointment)
+                                                                setShowEditModal(true)
+                                                            }}
 
                                                         >
                                                             <div style={styles.appointmentClient}>{customerName}</div>
@@ -288,6 +325,13 @@ export default function Appointments() {
                             prefilledTechID={clickedTechID}
                             prefilledTime={clickedTime}
                             selectedDate={selectedDate}
+                        />
+
+                        <AppointmentEditModal
+                            isOpen={showEditModal}
+                            onClose={() => setShowEditModal(false)}
+                            onSave={(handleEditAppointment)}
+                            prefilledAppointment={clickedAppointment}
                         />
 
                     </>
@@ -369,6 +413,7 @@ const styles = {
         width: '100px',
         minWidth: '100px',
         maxWidth: '100px',
+
     },
     tableCell: {
         padding: '2px 16px',
@@ -384,7 +429,7 @@ const styles = {
         fontSize: '14px',
         color: '#374151',
         backgroundColor: '#dbeafe',
-        border: '2px solid #3b82f6',
+        boxShadow: 'inset 2px 0 0 #3b82f6',
         verticalAlign: 'center',
     },
     appointmentClient: {
