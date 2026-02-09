@@ -14,6 +14,7 @@ export default function Appointments() {
     const [clickedAppointment, setClickedAppointment] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [loading, setLoading] = useState(false);
+    const [hoveredAppointment, setHoveredAppointment] = useState(null);
     const apiURL = import.meta.env.VITE_API_URL;
     const tableContainerRef = React.useRef(null);
 
@@ -39,6 +40,54 @@ export default function Appointments() {
         return `${year}-${month}-${day}`;
     };
 
+    const STATUS_CONFIG = {
+        Open: {
+            backgroundColor: '#dbeafe',
+            hoverColor: '#93c5fd',
+            borderColor: '#3b82f6'
+        },
+        Closed: {
+            backgroundColor: '#e5e7eb',
+            hoverColor: '#d1d5db',
+            borderColor: '#6b7280'
+        },
+        Pending: {
+            backgroundColor: '#d1fae5',
+            hoverColor: '#a7f3d0',
+            borderColor: '#10b981'
+        }
+    };
+
+    const getAppointmentCellStyle = (status) => ({
+        ...styles.appointmentCell,
+        backgroundColor: STATUS_CONFIG[status]?.backgroundColor || '#dbeafe',
+        boxShadow: `inset 2px 0 0 ${STATUS_CONFIG[status]?.borderColor || '#3b82f6'}`,
+    });
+
+    // Quick status change handler
+    const handleQuickStatusChange = (appointment, newStatus) => {
+        const appointmentData = {
+            ...appointment,
+            AppStatus: newStatus,
+            CustomerID: appointment.CustomerID.CustomerID,
+        };
+
+        fetch(`${apiURL}/appointments/${appointment.AppID}/`, {
+            method: 'PUT',
+            headers: new Headers({
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': sessionStorage.getItem('csrfToken')
+            }),
+            credentials: 'include',
+            body: JSON.stringify(appointmentData)
+        }).then(response => {
+            if (response.ok) {
+                fetchTechnicians();
+                setHoveredAppointment(null);
+            }
+        });
+    };
 
     // Fetch technicians for selected date
     useEffect(() => {
@@ -65,7 +114,7 @@ export default function Appointments() {
                 tableContainerRef.current.scrollTop = scrollPosition;
             }
         }
-    }, [loading]);
+    }, []);
 
     const getCurrentTimePosition = () => {
         const now = new Date();
@@ -250,22 +299,67 @@ export default function Appointments() {
                                                         ? `${appointment.CustomerID.CustomerFirstName || ''} ${appointment.CustomerID.CustomerLastName || ''}`.trim()
                                                         : 'Unknown Customer';
 
+                                                    const appointmentStatus = appointment.AppStatus || 'Open';
+                                                    const isHovered = hoveredAppointment === appointment.AppID;
+
                                                     return (
                                                         <td
                                                             key={tech.TechID}
                                                             rowSpan={cellInfo.span}
-                                                            style={styles.appointmentCell}
-                                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#93c5fd'}
-                                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#dbeafe'}
+                                                            style={{
+                                                                ...getAppointmentCellStyle(appointmentStatus),
+                                                                position: 'relative',
+                                                            }}
+                                                            onMouseEnter={(e) => {
+                                                                e.currentTarget.style.backgroundColor = STATUS_CONFIG[appointmentStatus]?.hoverColor || '#93c5fd';
+                                                                setHoveredAppointment(appointment.AppID);
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                e.currentTarget.style.backgroundColor = getAppointmentCellStyle(appointmentStatus).backgroundColor;
+                                                                setHoveredAppointment(null);
+                                                            }}
                                                             onClick={() => {
                                                                 setClickedAppointment(appointment)
                                                                 setShowEditModal(true)
                                                             }}
-
                                                         >
-                                                            <div style={styles.appointmentClient}>{customerName}</div>
-                                                            <div style={styles.appointmentService}>{service.ServiceName}</div>
-                                                            <div style={styles.appointmentDuration}>{service.ServiceDuration} min</div>
+                                                            <div style={styles.appointmentContent}>
+                                                                <div style={styles.appointmentClient}>{customerName}</div>
+                                                                <div style={styles.appointmentService}>{service.ServiceName}</div>
+                                                                <div style={styles.serviceComment}>{service.ServiceComment} </div>
+                                                            </div>
+
+                                                            {/* Quick Action Buttons */}
+                                                            {isHovered && (
+                                                                <div style={styles.quickActionsContainer}>
+                                                                    {(appointmentStatus === 'Open') && (
+                                                                        <button
+                                                                            style={styles.quickActionButton}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleQuickStatusChange(appointment, 'Pending');
+                                                                            }}
+                                                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#059669'}
+                                                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
+                                                                        >
+                                                                            ✓ Check In
+                                                                        </button>
+                                                                    )}
+                                                                    {(appointmentStatus === 'Pending') && (
+                                                                        <button
+                                                                            style={styles.quickActionButton}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleQuickStatusChange(appointment, 'Closed');
+                                                                            }}
+                                                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#4b5563'}
+                                                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6b7280'}
+                                                                        >
+                                                                            ✓ Complete
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            )}
                                                         </td>
                                                     );
                                                 }
@@ -413,7 +507,6 @@ const styles = {
         width: '100px',
         minWidth: '100px',
         maxWidth: '100px',
-
     },
     tableCell: {
         padding: '2px 16px',
@@ -428,9 +521,12 @@ const styles = {
         padding: '2px 16px',
         fontSize: '14px',
         color: '#374151',
-        backgroundColor: '#dbeafe',
-        boxShadow: 'inset 2px 0 0 #3b82f6',
         verticalAlign: 'center',
+        cursor: 'pointer',
+    },
+    appointmentContent: {
+        position: 'relative',
+        zIndex: 1,
     },
     appointmentClient: {
         fontWeight: '500',
@@ -442,9 +538,33 @@ const styles = {
         color: '#1f2937',
         marginBottom: '2px',
     },
-    appointmentDuration: {
+    serviceComment: {
         fontSize: '12px',
         color: '#6b7280',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+    },
+    quickActionsContainer: {
+        position: 'absolute',
+        bottom: '4px',
+        right: '4px',
+        display: 'flex',
+        gap: '4px',
+        zIndex: 10,
+    },
+    quickActionButton: {
+        padding: '4px 8px',
+        fontSize: '11px',
+        fontWeight: '500',
+        color: '#ffffff',
+        backgroundColor: '#10b981',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s',
+        whiteSpace: 'nowrap',
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
     },
     loadingContainer: {
         display: 'flex',

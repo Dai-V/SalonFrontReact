@@ -9,6 +9,7 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
     const [selectedCustomer, setSelectedCustomer] = useState('');
     const [appointmentDate, setAppointmentDate] = useState('');
     const [paymentType, setPaymentType] = useState('cash');
+    const [appStatus, setAppStatus] = useState('Open');
     const [showCustomerAddModal, setShowCustomerAddModal] = useState(false);
     const [services, setServices] = useState([]);
 
@@ -26,12 +27,14 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
                 ServiceStartTime: s.ServiceStartTime ? s.ServiceStartTime.slice(0, 5) : '',
                 ServiceDuration: s.ServiceDuration || 30,
                 ServicePrice: s.ServicePrice || 0,
+                ServiceComment: s.ServiceComment || '',
                 TechID: s.TechID ? s.TechID.toString() : ''
             })) : setServices([])) // Clear services when modal closes
 
             setSelectedCustomer(prefilledAppointment.CustomerID ? prefilledAppointment.CustomerID.CustomerID : '');
             setAppointmentDate(prefilledAppointment.AppDate || '');
             setPaymentType(prefilledAppointment.PaymentType || 'cash');
+            setAppStatus(prefilledAppointment.AppStatus || 'Open');
         }
     }, [isOpen, prefilledAppointment]);
 
@@ -106,6 +109,7 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
             ServiceStartTime: nextStartTime,
             ServiceDuration: 30,
             ServicePrice: 0,
+            ServiceComment: '',
             TechID: lastService.TechID || ''
         }]);
     };
@@ -247,6 +251,13 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
         { value: 'check', label: 'Check' }
     ];
 
+    const appStatusOptions = [
+        { value: 'Open', label: 'Scheduled' },
+        { value: 'Pending', label: 'Checked In' },
+        { value: 'Closed', label: 'Closed' },
+        { value: 'Cancelled', label: 'Cancelled' }
+    ];
+
     const loadSavedService = (index, savedServiceId) => {
         const savedService = savedServices.find(s => s.ServiceID === parseInt(savedServiceId));
         if (savedService) {
@@ -280,6 +291,7 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
             AppDate: appointmentDate,
             AppTotal: calculateTotal(),
             PaymentType: paymentType,
+            AppStatus: appStatus,
             CustomerID: parseInt(selectedCustomer),
             Services: services.map(s => ({
                 ServiceName: s.ServiceName,
@@ -287,6 +299,7 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
                 ServiceStartTime: s.ServiceStartTime + ':00',
                 ServiceDuration: parseInt(s.ServiceDuration),
                 ServicePrice: parseFloat(s.ServicePrice),
+                ServiceComment: s.ServiceComment,
                 TechID: parseInt(s.TechID)
             }))
         };
@@ -304,7 +317,8 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
             ServiceStartTime: '',
             ServiceDuration: 30,
             ServicePrice: 0,
-            TechID: ''
+            TechID: '',
+            ServiceComment: ''
         }]);
         onClose();
     };
@@ -354,9 +368,8 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
                 </div>
 
                 <div style={styles.modalBody}>
-                    {/* Customer, Date, Payment Type Row */}
                     <div style={styles.formRow}>
-                        <div style={{ ...styles.formGroup, flex: '0 0 calc(50% - 8px)' }}>
+                        <div style={{ ...styles.formGroup, flex: '0 0 calc(37% - 8px)' }}>
                             <label style={styles.label}>Customer</label>
                             <div style={{ position: 'relative' }}>
                                 <Select
@@ -380,7 +393,7 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
                             </div>
                         </div>
 
-                        <div style={{ ...styles.formGroup, flex: '0 0 calc(25% - 8px)' }}>
+                        <div style={{ ...styles.formGroup, flex: '0 0 calc(15% - 8px)' }}>
                             <label style={styles.label}>Date</label>
                             <input
                                 type="date"
@@ -391,13 +404,23 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
                         </div>
 
                         <div style={{ ...styles.formGroup, flex: '0 0 calc(25% - 8px)' }}>
+                            <label style={styles.label}>Status</label>
+                            <Select
+                                options={appStatusOptions}
+                                value={appStatusOptions.find(opt => opt.value === appStatus) || appStatusOptions[0]}
+                                onChange={(option) => setAppStatus(option ? option.value : 'Open')}
+                                styles={selectStyles}
+                                isSearchable={false}
+                            />
+                        </div>
+
+                        <div style={{ ...styles.formGroup, flex: '0 0 calc(15% - 8px)' }}>
                             <label style={styles.label}>Payment Type</label>
                             <Select
                                 options={paymentTypeOptions}
                                 value={paymentTypeOptions.find(opt => opt.value === paymentType) || paymentTypeOptions[0]}
                                 onChange={(option) => setPaymentType(option ? option.value : 'cash')}
                                 styles={selectStyles}
-                                placeholder="Select payment type"
                                 isSearchable={false}
                             />
                         </div>
@@ -519,6 +542,18 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
                                             onChange={(e) => updateService(index, 'ServicePrice', e.target.value)}
                                             min="0"
                                             step="0.01"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div style={styles.formRow}>
+                                    <div style={styles.formGroup}>
+                                        <label style={styles.label}>Comment/Note</label>
+                                        <input
+                                            type="text"
+                                            style={styles.input}
+                                            value={service.ServiceComment}
+                                            onChange={(e) => updateService(index, 'ServiceComment', e.target.value)}
                                         />
                                     </div>
                                 </div>
