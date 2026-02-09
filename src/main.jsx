@@ -5,7 +5,7 @@ import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import './index.css'
 import App from './App.jsx'
-import Dashboard from './pages/Dashboard.jsx'
+import Main from './pages/Main.jsx'
 
 createRoot(document.getElementById('root')).render(
   <BrowserRouter>
@@ -13,7 +13,7 @@ createRoot(document.getElementById('root')).render(
       <Route path="/" element={< LoginPage />} />
       <Route path="/login" element={< LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
-      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/main" element={<Main />} />
     </Routes>
     <App />
   </BrowserRouter>,

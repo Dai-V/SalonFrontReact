@@ -3,10 +3,11 @@ import NavBar from '../components/NavBar.jsx';
 import Customers from '../components/Customers.jsx';
 import Technicians from '../components/Technicians.jsx';
 import Appointments from '../components/Appointments.jsx';
+import Dashboard from '../components/Dashboard.jsx';
 import { Link, useNavigate } from "react-router-dom"
 import SavedServices from '../components/SavedServices.jsx';
 
-export default function Dashboard() {
+export default function Main() {
     const [activePage, setActivePage] = useState('Dashboard');
     const [activeContent, setActiveContent] = useState('')
     const apiURL = import.meta.env.VITE_API_URL;
@@ -34,6 +35,8 @@ export default function Dashboard() {
             setActiveContent(<SavedServices />)
         if (activePage === 'Appointments')
             setActiveContent(<Appointments />)
+        if (activePage === 'Dashboard')
+            setActiveContent(<Dashboard />)
         getCsrfToken()
     }, [activePage]);
 

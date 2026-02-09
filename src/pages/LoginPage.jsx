@@ -47,7 +47,7 @@ export default function LoginPage() {
         })
             .then(response => {
                 if (response.ok) {
-                    navigate("/dashboard");
+                    navigate("/main");
                     return response.json();
                 } else if (response.status === 404) {
                     throw new Error('Invalid username or password');
@@ -110,6 +110,7 @@ export default function LoginPage() {
                                 ...styles.input,
                                 borderColor: errors.username ? '#dc2626' : '#e5e7eb',
                             }}
+                            onKeyDown={handleKeyPress}
                             disabled={isLoading}
                         />
                         {errors.username && (
@@ -136,6 +137,7 @@ export default function LoginPage() {
                                 ...styles.input,
                                 borderColor: errors.password ? '#dc2626' : '#e5e7eb',
                             }}
+                            onKeyDown={handleKeyPress}
                             disabled={isLoading}
                         />
                         {errors.password && (
