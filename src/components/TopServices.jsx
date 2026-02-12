@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react';
 export default function TopServices({ data }) {
     const [topServices, setTopServices] = useState([]);
     const [serviceCount, setServiceCount] = useState(0);
+    const [serviceCountTrend, setServiceCountTrend] = useState('');
+    const [trendColor, setTrendColor] = useState('#666');
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -12,10 +14,28 @@ export default function TopServices({ data }) {
     }, [data]);
 
     const processData = () => {
-        if (data && data.TopServices) {
-            setTopServices(data.TopServices)
-            setServiceCount(data.ServiceCount)
-            setLoading(false);
+        if (data) {
+            if (data.TopServices) {
+                setTopServices(data.TopServices)
+                setServiceCount(data.ServiceCount)
+                setLoading(false);
+            }
+
+            if (data.ServiceCountTrend != 0) {
+                if (data.ServiceCountTrend > 0) {
+                    setServiceCountTrend(`↑ ${data.ServiceCountTrend.toFixed(2)}%`);
+                    setTrendColor('#10b981');
+                }
+                else if (data.ServiceCountTrend < 0) {
+                    setServiceCountTrend(`↓ ${Math.abs(data.ServiceCountTrend).toFixed(2)}%`);
+                    setTrendColor('#ef4444');
+                }
+            }
+            else {
+                setServiceCountTrend('N/A');
+                setTrendColor('#666');
+            }
+
         }
     };
 
@@ -27,6 +47,12 @@ export default function TopServices({ data }) {
         <div style={styles.topServices}>
             <div style={styles.header}>
                 <h3 style={styles.title}>Total Services</h3>
+                <span style={{
+                    ...styles.trend,
+                    color: trendColor
+                }}>
+                    {serviceCountTrend}
+                </span>
             </div>
             <div style={styles.mainValue}>{serviceCount}</div>
             <div style={styles.subtitle}>
@@ -78,6 +104,13 @@ const styles = {
         fontWeight: '600',
         margin: '8px 0 16px 0',
         color: '#1f2937'
+    },
+    trend: {
+        fontSize: '12px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
+        fontWeight: '500'
     },
     subtitle: {
         fontSize: '14px',

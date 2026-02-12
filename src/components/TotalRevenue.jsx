@@ -3,15 +3,33 @@ import { useState, useEffect } from 'react';
 export default function TotalRevenue({ data }) {
     const [revenueData, setRevenueData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [revenueTrend, setRevenueTrend] = useState('');
+    const [trendColor, setTrendColor] = useState('#666');
 
     useEffect(() => {
         processData();
     }, [data]);
 
     const processData = () => {
-        if (data && data.EarnedTotals) {
-            setRevenueData(data);
-            setLoading(false);
+        if (data) {
+            if (data.EarnedTotals) {
+                setRevenueData(data);
+                setLoading(false);
+            }
+            if (data.EarnedTotalsTrend != 0) {
+                if (data.EarnedTotalsTrend > 0) {
+                    setRevenueTrend(`↑ ${data.EarnedTotalsTrend.toFixed(2)}%`);
+                    setTrendColor('#10b981');
+                }
+                else if (data.EarnedTotalsTrend < 0) {
+                    setRevenueTrend(`↓ ${Math.abs(data.EarnedTotalsTrend).toFixed(2)}%`);
+                    setTrendColor('#ef4444');
+                }
+            }
+            else {
+                setRevenueTrend('N/A');
+                setTrendColor('#666');
+            }
         }
     };
 
@@ -27,6 +45,15 @@ export default function TotalRevenue({ data }) {
         return <div style={styles.loading}>Loading...</div>;
     }
 
+    function calculatePercentageChange(current, previous) {
+        const change = ((current - previous) / previous) * 100;
+        const isPositive = change >= 0;
+        return {
+            trend: `${isPositive ? '↑' : '↓'} ${Math.abs(change).toFixed(2)}%`,
+            color: isPositive ? '#10b981' : '#ef4444'
+        };
+    }
+
     const stats = [
         {
             label: 'Avg per Appointment',
@@ -36,15 +63,31 @@ export default function TotalRevenue({ data }) {
             label: 'Highest Appointment',
             value: formatCurrency(revenueData.AppointmentAverage.Max)
         },
-        {
-            label: 'Avg Daily Revenue',
+    ];
+
+    if (revenueData.From == revenueData.To) {
+        stats.push({
+            label: 'Top performing technician',
+            value: revenueData.TechTotals[0]?.TechName || 'N/A'
+        },
+            {
+                label: 'Average per Technician',
+                value: formatCurrency(revenueData.TechTotals.reduce((sum, tech) => sum + tech.Total, 0) / revenueData.TechTotals.length || 0)
+            }
+        )
+    }
+    else {
+        stats.push({
+            label: 'Average revenue per Day',
             value: formatCurrency(revenueData.DailyRevenueAverage.Avg)
         },
-        {
-            label: 'Highest Day',
-            value: formatCurrency(revenueData.DailyRevenueAverage.Max)
-        }
-    ];
+            {
+                label: 'Highest Day',
+                value: formatCurrency(revenueData.DailyRevenueAverage.Max)
+            })
+    }
+
+
 
     return (
         <div style={styles.totalRevenue}>
@@ -52,9 +95,9 @@ export default function TotalRevenue({ data }) {
                 <h3 style={styles.title}>Total Revenue</h3>
                 <span style={{
                     ...styles.trend,
-                    color: '#10b981'
+                    color: trendColor
                 }}>
-                    ↗ Earned
+                    {revenueTrend}
                 </span>
             </div>
             <div style={styles.mainValue}>{formatCurrency(revenueData.EarnedTotals)}</div>

@@ -5,50 +5,6 @@ import AppointmentsByStatus from './AppointmentsByStatus';
 import TotalRevenue from './TotalRevenue';
 import { formatLocalDate } from '../utils/dateUtils';
 
-const styles = {
-    container: {
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        padding: '0',
-    },
-    buttonRow: {
-        display: 'flex',
-        gap: '12px',
-        marginBottom: '20px',
-    },
-    button: {
-        padding: '10px 20px',
-        fontSize: '14px',
-        fontWeight: '500',
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderColor: '#e5e7eb',
-        borderRadius: '8px',
-        backgroundColor: 'white',
-        color: '#374151',
-        cursor: 'pointer',
-        transition: 'all 0.2s',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    },
-    buttonActive: {
-        backgroundColor: '#2563eb',
-        color: 'white',
-        borderColor: '#2563eb',
-    },
-    cardRow: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '20px',
-        marginBottom: '20px',
-        alignItems: 'start'
-    },
-    chartRow: {
-        display: 'grid',
-        gridTemplateColumns: '1fr',
-        gap: '20px',
-        marginBottom: '20px',
-    },
-};
-
 export default function Dashboard() {
     const apiURL = import.meta.env.VITE_API_URL;
     const [dashboardData, setDashboardData] = useState(null);
@@ -173,12 +129,53 @@ export default function Dashboard() {
                 <AppointmentsByStatus data={dashboardData} />
                 <TotalRevenue data={dashboardData} />
             </div>
-            {startDate !== endDate && (
+            {startDate !== endDate &&
                 <div style={styles.chartRow}>
-                    <TotalsByDayOfWeekChart data={dashboardData} />
+                    (<TotalsByDayOfWeekChart data={dashboardData} />)
                 </div>
-            )}
-
+            }
         </div>
     );
 }
+
+const styles = {
+    container: {
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        padding: '0',
+    },
+    buttonRow: {
+        display: 'flex',
+        gap: '12px',
+        marginBottom: '20px',
+    },
+    button: {
+        padding: '10px 20px',
+        fontSize: '14px',
+        fontWeight: '500',
+        borderWidth: '1px',
+        borderStyle: 'solid',
+        borderColor: '#e5e7eb',
+        borderRadius: '8px',
+        backgroundColor: 'white',
+        color: '#374151',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    },
+    buttonActive: {
+        backgroundColor: '#2563eb',
+        color: 'white',
+        borderColor: '#2563eb',
+    },
+    cardRow: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: '20px',
+        alignItems: 'start'
+    },
+    chartRow: {
+        display: 'grid',
+        gridTemplateColumns: '1fr',
+        gap: '20px',
+    },
+};

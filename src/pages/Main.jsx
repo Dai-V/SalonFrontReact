@@ -104,11 +104,10 @@ const styles = {
         flexDirection: 'column',
     },
     contentHeader: {
-        padding: '1.5rem',
+        padding: '1.65rem',
         backgroundColor: '#ffffff',
         borderBottom: '1px solid #e5e7eb',
         marginLeft: '-1px',
-        height: '3rem'
     },
     pageTitle: {
         fontSize: '32px',
