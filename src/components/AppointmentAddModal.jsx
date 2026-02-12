@@ -7,7 +7,7 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
     const [savedServices, setSavedServices] = useState([]);
     const [technicians, setTechnicians] = useState([]);
     const [selectedCustomer, setSelectedCustomer] = useState('');
-    const [appointmentDate, setAppointmentDate] = useState(selectedDate ? selectedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
+    const [appointmentDate, setAppointmentDate] = useState('');
     const [paymentType, setPaymentType] = useState('cash');
     const [appStatus, setAppStatus] = useState('Open');
     const [showCustomerAddModal, setShowCustomerAddModal] = useState(false);
@@ -39,6 +39,12 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
             }]);
         }
     }, [isOpen, prefilledTime, prefilledTechID]);
+
+    useEffect(() => {
+        if (isOpen && selectedDate) {
+            setAppointmentDate(formatLocalDate(selectedDate));
+        }
+    }, [isOpen, selectedDate]);
 
     const fetchCustomers = async () => {
         try {
@@ -260,14 +266,11 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
         { value: 'Cancelled', label: 'Cancelled' }
     ];
 
-    const loadSavedService = (index, savedServiceId) => {
-        const savedService = savedServices.find(s => s.ServiceID === parseInt(savedServiceId));
-        if (savedService) {
-            updateService(index, 'ServiceName', savedService.ServiceName);
-            updateService(index, 'ServiceCode', savedService.ServiceCode);
-            updateService(index, 'ServiceDuration', savedService.ServiceDuration);
-            updateService(index, 'ServicePrice', savedService.ServicePrice);
-        }
+    const formatLocalDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     };
 
     const calculateTotal = () => {

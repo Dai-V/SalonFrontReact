@@ -7,22 +7,24 @@ export default function TotalsByDayOfWeekChart({ data }) {
 
     // Map day numbers to day names
     const dayNames = {
-        1: 'Monday',
-        2: 'Tuesday',
-        3: 'Wednesday',
-        4: 'Thursday',
-        5: 'Friday',
-        6: 'Saturday',
-        7: 'Sunday',
+        2: 'Monday',
+        3: 'Tuesday',
+        4: 'Wednesday',
+        5: 'Thursday',
+        6: 'Friday',
+        7: 'Saturday',
+        1: 'Sunday',
     };
 
     // All days in order
-    const allDays = [1, 2, 3, 4, 5, 6, 7];
+    const allDays = [2, 3, 4, 5, 6, 7, 1];
 
     useEffect(() => {
-        // Check if data exists
+        processData()
+    }, [data]);
+
+    const processData = () => {
         if (data && data.TotalsByDayOfWeek) {
-            // Create a map of day to total
             const dayTotalsMap = {};
             data.TotalsByDayOfWeek.forEach(item => {
                 dayTotalsMap[item.DayOfWeek] = item.Total;
@@ -34,7 +36,14 @@ export default function TotalsByDayOfWeekChart({ data }) {
 
             setChartOptions({
                 chart: {
-                    type: 'line'
+                    type: 'line',
+                    backgroundColor: 'white',
+                    borderRadius: 12,
+                    style: {
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                    },
+                    spacing: [20, 20, 20, 20]
+
                 },
                 title: {
                     text: 'Revenue by Day of Week'
@@ -76,7 +85,7 @@ export default function TotalsByDayOfWeekChart({ data }) {
                 }
             });
         }
-    }, [data]);
+    }
 
     if (!chartOptions) {
         return <div>Loading chart...</div>;

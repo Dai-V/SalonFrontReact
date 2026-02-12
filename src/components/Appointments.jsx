@@ -3,6 +3,7 @@ import React from 'react';
 import AppointmentAddModal from './AppointmentAddModal';
 import AppointmentEditModal from './AppointmentEditModal';
 import Calendar from './Calendar.jsx';
+import { formatLocalDate } from '../utils/dateUtils';
 
 export default function Appointments() {
     const [technicians, setTechnicians] = useState([]);
@@ -33,12 +34,6 @@ export default function Appointments() {
 
     const timeSlots = generateTimeSlots();
 
-    const formatDateForAPI = (date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
 
     const STATUS_CONFIG = {
         Open: {
@@ -169,7 +164,7 @@ export default function Appointments() {
     const fetchTechnicians = async () => {
         setLoading(true);
         try {
-            const dateStr = formatDateForAPI(selectedDate);
+            const dateStr = formatLocalDate(selectedDate);
             const response = await fetch(`${apiURL}/technicians/?Date=${dateStr}`, {
                 method: 'GET',
                 headers: new Headers({
