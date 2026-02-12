@@ -2,20 +2,14 @@
 Planned Features:
 
 Appointments:
-+ View a specific date's appointment
-+ Create appointment
-+ Edit appointment
++ View a specific date's appointment (Done)
++ Create appointment  (Done)
++ Edit appointment  (Done)
 + Cancel appointment (By setting status to Cancelled)
-+ Searchable dropdown for customer while making appointment
++ Searchable dropdown for customer while making appointment  (Done)
 
 Dashboard:
-(Daily, weekly, monthly) 
-Total Appointments for the day
-Appointments closed
-Appointments still open
-Appointments canceled
-
-
+(Daily, weekly, monthly, yearly)  (Done) 
 
 Totals:
 + Show totals done by each technician (Name, total amount of Services done, total prices)
@@ -37,7 +31,7 @@ Technicians:
 + Edit (Done)
 + Search (Done)
 + View Schedule (Done)
-+ Add Schedule 
++ Add Schedule  (Done)
 + Standing Services (Done)
 + Past Services (Done)
 
