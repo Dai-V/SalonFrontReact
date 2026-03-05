@@ -1,11 +1,16 @@
 (WIP)
+
+Features for next patch:
+- Forgot password
+- Remember me
 Planned Features:
+
 
 Appointments:
 + View a specific date's appointment (Done)
 + Create appointment  (Done)
 + Edit appointment  (Done)
-+ Cancel appointment (By setting status to Cancelled)
++ Cancel appointment (Done)
 + Searchable dropdown for customer while making appointment  (Done)
 
 Dashboard:
