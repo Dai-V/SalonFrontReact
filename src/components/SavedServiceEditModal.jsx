@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export default function SavedServiceEditModal({ isOpen, onClose, onSave, services, editService }) {
+export default function SavedServiceEditModal({ isOpen, onClose, onSave, services, editService, onDelete }) {
     const [newService, setNewService] = useState({
         code: '',
         name: '',
@@ -8,6 +8,7 @@ export default function SavedServiceEditModal({ isOpen, onClose, onSave, service
         duration: '',
         description: '',
     });
+    const [showConfirmation, setShowConfirmation] = useState(null);
 
     const [errors, setErrors] = useState({});
 
@@ -84,13 +85,20 @@ export default function SavedServiceEditModal({ isOpen, onClose, onSave, service
         onClose();
     };
 
+    const confirmCloseAll = () => {
+        onDelete(editService.ServiceID);
+        setShowConfirmation(null);
+        handleClose();
+    }
+
+
     if (!isOpen) return null;
 
     return (
         <div style={styles.modalOverlay} onClick={handleClose}>
             <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                 <div style={styles.modalHeader}>
-                    <h3 style={styles.modalTitle}>Add New Service</h3>
+                    <h3 style={styles.modalTitle}>Edit Service</h3>
                     <button style={styles.closeButton} onClick={handleClose}>×</button>
                 </div>
 
@@ -180,13 +188,35 @@ export default function SavedServiceEditModal({ isOpen, onClose, onSave, service
                 </div>
 
                 <div style={styles.modalFooter}>
-                    <button style={styles.cancelButton} onClick={handleClose}>
-                        Cancel
+                    <button style={styles.deleteButton} onClick={() => setShowConfirmation('delete')}>
+                        Delete Service
                     </button>
-                    <button style={styles.saveButton} onClick={handleSubmit}>
-                        Add Service
-                    </button>
+
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                        <button style={styles.cancelButton} onClick={handleClose}>
+                            Cancel
+                        </button>
+                        <button style={styles.saveButton} onClick={handleSubmit}>
+                            Save Changes
+                        </button>
+                    </div>
                 </div>
+
+                {showConfirmation === 'delete' && (
+                    <div style={styles.confirmOverlay}>
+                        <div style={styles.confirmContent}>
+                            <div style={styles.confirmTitle}>Confirm service deletion</div>
+                            <p style={styles.confirmText}>
+                                Are you sure you want to delete this service? This action cannot be undone.
+                            </p>
+                            <div style={styles.confirmButtons}>
+
+                                <button style={styles.confirmCancel} onClick={() => setShowConfirmation(null)}>Cancel</button>
+                                <button style={styles.confirmClose} onClick={confirmCloseAll}>Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -290,10 +320,22 @@ const styles = {
     },
     modalFooter: {
         display: 'flex',
-        justifyContent: 'flex-end',
-        gap: '12px',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         padding: '16px 24px 24px 24px',
         borderTop: '1px solid #e5e7eb',
+    },
+
+    deleteButton: {
+        backgroundColor: '#ffffff',
+        color: '#dc2626',
+        border: '1px solid #dc2626',
+        borderRadius: '8px',
+        padding: '10px 20px',
+        fontSize: '14px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     cancelButton: {
         backgroundColor: '#ffffff',
@@ -324,5 +366,79 @@ const styles = {
         color: '#dc2626',
         fontSize: '12px',
         marginTop: '4px',
+    },
+    confirmOverlay: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1003,
+    },
+    confirmContent: {
+        backgroundColor: '#ffffff',
+        borderRadius: '12px',
+        padding: '24px',
+        width: '90%',
+        maxWidth: '400px',
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    },
+    confirmTitle: {
+        fontSize: '20px',
+        fontWeight: 'bold',
+        color: '#111827',
+        margin: '0 0 12px 0',
+    },
+    confirmText: {
+        fontSize: '14px',
+        color: '#6b7280',
+        margin: '0 0 24px 0',
+        lineHeight: '1.5',
+    },
+    confirmButtons: {
+        display: 'flex',
+        gap: '7px',
+        justifyContent: 'flex-end',
+    },
+    confirmCancel: {
+        backgroundColor: '#ffffff',
+        color: '#374151',
+        border: '1px solid #e5e7eb',
+        borderRadius: '8px',
+        padding: '10px 20px',
+        fontSize: '14px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    },
+    confirmOpen: {
+        backgroundColor: '#10b981',
+        color: '#ffffff',
+        border: 'none',
+        borderRadius: '8px',
+        padding: '10px 20px',
+        fontSize: '14px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    },
+    confirmClose: {
+        backgroundColor: '#ef4444',
+        color: '#ffffff',
+        border: 'none',
+        borderRadius: '8px',
+        padding: '10px 20px',
+        fontSize: '14px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
 };

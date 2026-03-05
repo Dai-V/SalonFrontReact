@@ -2,7 +2,8 @@
 
 Features for next patch:
 - Forgot password
-- Remember me
+- Prevent double booking
+- Recurring appointments
 Planned Features:
 
 
@@ -44,7 +45,7 @@ Saved Services:
 + View (Done)
 + Create (Done)
 + Edit (Done)
-+ Delete
++ Delete (Done)
 + Search (Done)
 
 Customers:

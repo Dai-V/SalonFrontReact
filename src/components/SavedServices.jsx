@@ -8,7 +8,7 @@ export default function SavedServices() {
     const [hoveredRow, setHoveredRow] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [editService, setEditService] = useState('')
+    const [editService, setEditService] = useState('');
     const apiURL = import.meta.env.VITE_API_URL;
 
     const filteredServices = services.filter(service =>
@@ -72,6 +72,23 @@ export default function SavedServices() {
     const handleRowClick = (serviceID) => {
         setEditService(services.find(service => service.ServiceID === serviceID))
         setShowEditModal(true)
+    };
+
+    const deleteService = (serviceID) => {
+        fetch(apiURL + '/savedservices/' + serviceID + '/', {
+            method: 'DELETE',
+            headers: new Headers({
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': sessionStorage.getItem('csrfToken')
+            }),
+            credentials: 'include',
+        })
+            .then(response => {
+                if (response.ok) {
+                    getServices()
+                }
+            });
     };
 
     const getServices = () => {
@@ -181,6 +198,7 @@ export default function SavedServices() {
                 onSave={handleEditService}
                 services={services}
                 editService={editService}
+                onDelete={deleteService}
             />
         </div>
     );
@@ -305,4 +323,5 @@ const styles = {
         transition: 'background-color 0.2s',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
+
 };
