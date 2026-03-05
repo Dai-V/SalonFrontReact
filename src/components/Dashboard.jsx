@@ -66,6 +66,7 @@ export default function Dashboard() {
 
         setStartDate(formattedStart);
         setEndDate(formattedEnd);
+        setDashboardData(null); // Clear previous data while loading new data
         fetchDashboard(formattedStart, formattedEnd);
     };
 

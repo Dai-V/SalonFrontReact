@@ -56,13 +56,28 @@ export default function Calendar({ selectedDate, onDateChange }) {
                             >
                                 ◀
                             </button>
-                            <div style={styles.dateValue} onClick={() => setShowCalendar(!showCalendar)}>
+                            <div
+                                style={styles.dateValue}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = '#e5e7eb';
+                                    e.currentTarget.style.color = '#2563eb';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                    e.currentTarget.style.color = '#111827';
+                                }}
+                                onClick={() => setShowCalendar(!showCalendar)}
+                            >
+                                📅
                                 {selectedDate.toLocaleDateString('en-US', {
                                     weekday: 'long',
                                     year: 'numeric',
                                     month: 'long',
                                     day: 'numeric'
                                 })}
+                                <span style={{ marginLeft: '8px', fontSize: '14px', opacity: 0.6 }}>
+                                    {showCalendar ? '▲' : '▼'}
+                                </span>
                             </div> <button
                                 style={styles.arrow}
                                 onClick={(e) => {
@@ -128,13 +143,16 @@ const styles = {
         flexDirection: 'column',
         alignItems: 'center',
         margin: '0 8px',
+
     },
     dateValue: {
         fontSize: '20px',
         fontWeight: '600',
         color: '#111827',
         cursor: 'pointer',
+        userSelect: 'none',
     },
+
     dateRow: {
         display: 'flex',
         alignItems: 'center',
@@ -150,6 +168,7 @@ const styles = {
         color: '#374151',
         padding: '4px 8px',
         borderRadius: '6px',
+        userSelect: 'none',
     },
 
     arrowHover: {

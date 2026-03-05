@@ -12,10 +12,9 @@ export default function TotalRevenue({ data }) {
 
     const processData = () => {
         if (data) {
-            if (data.EarnedTotals) {
-                setRevenueData(data);
-                setLoading(false);
-            }
+            setRevenueData(data);
+            setLoading(false);
+
             if (data.EarnedTotalsTrend != 0) {
                 if (data.EarnedTotalsTrend > 0) {
                     setRevenueTrend(`↑ ${data.EarnedTotalsTrend.toFixed(2)}%`);
@@ -45,14 +44,6 @@ export default function TotalRevenue({ data }) {
         return <div style={styles.loading}>Loading...</div>;
     }
 
-    function calculatePercentageChange(current, previous) {
-        const change = ((current - previous) / previous) * 100;
-        const isPositive = change >= 0;
-        return {
-            trend: `${isPositive ? '↑' : '↓'} ${Math.abs(change).toFixed(2)}%`,
-            color: isPositive ? '#10b981' : '#ef4444'
-        };
-    }
 
     const stats = [
         {
