@@ -59,8 +59,8 @@ export default function Appointments() {
         return () => clearInterval(interval);
     }, []);
 
-    const updateAppointment = (appointmentId, appointmentData) => {
-        return fetch(`${apiURL}/appointments/${appointmentId}/`, {
+    const updateAppointment = async (appointmentId, appointmentData) => {
+        const res = await fetch(`${apiURL}/appointments/${appointmentId}/`, {
             method: 'PUT',
             headers: new Headers({
                 'Accept': 'application/json',
@@ -69,10 +69,14 @@ export default function Appointments() {
             }),
             credentials: 'include',
             body: JSON.stringify(appointmentData),
-        }).then(res => {
-            if (res.ok) fetchTechnicians();
-            else if (res.status === 409) setErrorMessage('This time slot is already booked. Please choose a different time.');
         });
+
+        if (res.ok) { fetchTechnicians(); return true; }
+        if (res.status === 409) {
+            const data = await res.json();
+            setErrorMessage(data.detail || 'This time slot is already booked. Please choose a different time.');
+            return false;
+        }
     };
 
 
@@ -118,8 +122,8 @@ export default function Appointments() {
         return ((h - 6) * 60 + m) / 15 * 24.5 + 42.5;
     };
 
-    const handleAddAppointment = (appointmentData) => {
-        fetch(`${apiURL}/appointments/`, {
+    const handleAddAppointment = async (appointmentData) => {
+        const res = await fetch(`${apiURL}/appointments/`, {
             method: 'POST',
             headers: new Headers({
                 'Accept': 'application/json',
@@ -128,21 +132,21 @@ export default function Appointments() {
             }),
             credentials: 'include',
             body: JSON.stringify(appointmentData),
-        }).then(res => {
-            if (res.ok) {
-                fetchTechnicians()
-            }
-            else if (res.status === 409) setErrorMessage('This time slot is already booked. Please choose a different time.');
-
         });
+
+        if (res.ok) { fetchTechnicians(); return true; }
+        if (res.status === 409) {
+            res.json().then(data => setErrorMessage(data.detail || 'This time slot is already booked. Please choose a different time.'));
+            return false;
+        }
     };
 
     const handleEditAppointment = (appointmentData) => {
-        updateAppointment(clickedAppointment.AppID, appointmentData);
+        return updateAppointment(clickedAppointment.AppID, appointmentData);
     };
 
     const fetchTechnicians = async () => {
-        setLoading(true);
+        // setLoading(true);
         try {
             const dateStr = formatLocalDate(selectedDate);
             const [techRes, apptRes] = await Promise.all([
@@ -154,7 +158,7 @@ export default function Appointments() {
         } catch (err) {
             console.error('Error fetching data:', err);
         }
-        setLoading(false);
+        // setLoading(false);
     };
 
     const getServiceForSlot = (techId, timeSlot) => {

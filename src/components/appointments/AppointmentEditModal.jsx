@@ -272,7 +272,7 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
         return services.reduce((sum, service) => sum + parseFloat(service.ServicePrice || 0), 0).toFixed(2);
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!selectedCustomer) {
             alert('Please select a customer');
             return;
@@ -304,8 +304,8 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
             }))
         };
 
-        onSave(appointmentData);
-        handleClose();
+        const success = await onSave(appointmentData);
+        if (success) handleClose();
     };
 
     const handleClose = () => {
