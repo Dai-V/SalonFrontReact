@@ -19,7 +19,7 @@ export default function Sidebar({ onMenuItemClick, onLogout, activeItem = 'Dashb
     const menuItems = [
         { name: 'Dashboard', icon: '📊' },
         { name: 'Appointments', icon: '📅' },
-        { name: 'Saved Services', icon: '👥' },
+        { name: 'Saved Services', icon: '⭐️' },
         { name: 'Technicians', icon: '👨‍🔧' },
         { name: 'Customers', icon: '👥' },
     ];
@@ -38,7 +38,12 @@ export default function Sidebar({ onMenuItemClick, onLogout, activeItem = 'Dashb
     return (
         <div style={{ ...styles.sidebar, width: isCollapsed ? '60px' : '16.66%' }}>
             {/* Header with Logo and Collapse Button */}
-            <div style={styles.header}>
+            <div
+                style={{
+                    ...styles.header,
+                    justifyContent: isCollapsed ? 'center' : 'space-between',
+                }}
+            >
                 {!isCollapsed && (
                     <div style={styles.logoContainer}>
                         <div style={styles.logo}>
@@ -64,6 +69,8 @@ export default function Sidebar({ onMenuItemClick, onLogout, activeItem = 'Dashb
                         style={{
                             ...styles.menuItem,
                             backgroundColor: activeItem === item.name ? '#dbeafe' : 'transparent',
+                            justifyContent: isCollapsed ? 'center' : 'flex-start',
+                            padding: isCollapsed ? '12px 0' : '12px 20px',
                         }}
                     >
                         <span style={styles.icon}>{item.icon}</span>
@@ -74,7 +81,14 @@ export default function Sidebar({ onMenuItemClick, onLogout, activeItem = 'Dashb
 
             {/* Logout Button at Bottom */}
             <div style={styles.logoutContainer}>
-                <button onClick={handleLogout} style={styles.logoutButton}>
+                <button
+                    onClick={handleLogout}
+                    style={{
+                        ...styles.logoutButton,
+                        justifyContent: isCollapsed ? 'center' : 'flex-start',
+                        padding: isCollapsed ? '12px 0' : '12px 20px',
+                    }}
+                >
                     <span style={styles.icon}>🚪</span>
                     {!isCollapsed && <span style={styles.menuText}>Logout</span>}
                 </button>

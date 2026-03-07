@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import NavBar from '../components/NavBar.jsx';
-import Customers from '../components/Customers.jsx';
+import Customers from '../components/customers/Customers.jsx';
 import Technicians from '../components/Technicians.jsx';
-import Appointments from '../components/Appointments.jsx';
-import Dashboard from '../components/Dashboard.jsx';
+import Appointments from '../components/appointments/Appointments.jsx';
+import Dashboard from '../components/dashboard/Dashboard.jsx';
 import { Link, useNavigate } from "react-router-dom"
 import SavedServices from '../components/SavedServices.jsx';
 

@@ -327,8 +327,8 @@ const styles = {
     },
 
     deleteButton: {
-        backgroundColor: '#ffffff',
-        color: '#dc2626',
+        backgroundColor: '#dc2626',
+        color: '#ffffff',
         border: '1px solid #dc2626',
         borderRadius: '8px',
         padding: '10px 20px',

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import Select, { components } from 'react-select';
-import CustomerAddModal from './CustomerAddModal';
+import CustomerAddModal from '../customers/CustomerAddModal';
 
-export default function AppointmentEditModal({ isOpen, onClose, onSave, prefilledAppointment = '' }) {
+export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedDate, prefilledTime = '', prefilledTechID = '' }) {
     const [customers, setCustomers] = useState([]);
     const [savedServices, setSavedServices] = useState([]);
     const [technicians, setTechnicians] = useState([]);
@@ -11,8 +11,15 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
     const [paymentType, setPaymentType] = useState('cash');
     const [appStatus, setAppStatus] = useState('Open');
     const [showCustomerAddModal, setShowCustomerAddModal] = useState(false);
-    const [services, setServices] = useState([]);
-
+    const [services, setServices] = useState([{
+        ServiceName: '',
+        ServiceCode: '',
+        ServiceStartTime: prefilledTime,
+        ServiceDuration: 30,
+        ServicePrice: 0,
+        ServiceComment: '',
+        TechID: prefilledTechID
+    }]);
     const apiURL = import.meta.env.VITE_API_URL;
 
     useEffect(() => {
@@ -21,22 +28,23 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
             fetchSavedServices();
             fetchTechnicians();
             // Reset services with prefilled values when modal opens
-            setServices(prefilledAppointment.Services ? prefilledAppointment.Services.map(s => ({
-                ServiceName: s.ServiceName || '',
-                ServiceCode: s.ServiceCode || '',
-                ServiceStartTime: s.ServiceStartTime ? s.ServiceStartTime.slice(0, 5) : '',
-                ServiceDuration: s.ServiceDuration || 30,
-                ServicePrice: s.ServicePrice || 0,
-                ServiceComment: s.ServiceComment || '',
-                TechID: s.TechID ? s.TechID.toString() : ''
-            })) : setServices([])) // Clear services when modal closes
-
-            setSelectedCustomer(prefilledAppointment.CustomerID ? prefilledAppointment.CustomerID.CustomerID : '');
-            setAppointmentDate(prefilledAppointment.AppDate || '');
-            setPaymentType(prefilledAppointment.PaymentType || 'cash');
-            setAppStatus(prefilledAppointment.AppStatus || 'Open');
+            setServices([{
+                ServiceName: '',
+                ServiceCode: '',
+                ServiceStartTime: prefilledTime,
+                ServiceDuration: 30,
+                ServicePrice: 0,
+                ServiceComment: '',
+                TechID: prefilledTechID
+            }]);
         }
-    }, [isOpen, prefilledAppointment]);
+    }, [isOpen, prefilledTime, prefilledTechID]);
+
+    useEffect(() => {
+        if (isOpen && selectedDate) {
+            setAppointmentDate(formatLocalDate(selectedDate));
+        }
+    }, [isOpen, selectedDate]);
 
     const fetchCustomers = async () => {
         try {
@@ -258,14 +266,11 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
         { value: 'Cancelled', label: 'Cancelled' }
     ];
 
-    const loadSavedService = (index, savedServiceId) => {
-        const savedService = savedServices.find(s => s.ServiceID === parseInt(savedServiceId));
-        if (savedService) {
-            updateService(index, 'ServiceName', savedService.ServiceName);
-            updateService(index, 'ServiceCode', savedService.ServiceCode);
-            updateService(index, 'ServiceDuration', savedService.ServiceDuration);
-            updateService(index, 'ServicePrice', savedService.ServicePrice);
-        }
+    const formatLocalDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     };
 
     const calculateTotal = () => {
@@ -290,8 +295,8 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
         const appointmentData = {
             AppDate: appointmentDate,
             AppTotal: calculateTotal(),
-            PaymentType: paymentType,
             AppStatus: appStatus,
+            PaymentType: paymentType,
             CustomerID: parseInt(selectedCustomer),
             Services: services.map(s => ({
                 ServiceName: s.ServiceName,
@@ -317,8 +322,8 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
             ServiceStartTime: '',
             ServiceDuration: 30,
             ServicePrice: 0,
-            TechID: '',
-            ServiceComment: ''
+            ServiceComment: '',
+            TechID: ''
         }]);
         onClose();
     };
@@ -363,11 +368,12 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
         <div style={styles.modalOverlay} onClick={handleClose}>
             <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                 <div style={styles.modalHeader}>
-                    <h3 style={styles.modalTitle}>Edit Appointment</h3>
+                    <h3 style={styles.modalTitle}>Add Appointment</h3>
                     <button style={styles.closeButton} onClick={handleClose}>×</button>
                 </div>
 
                 <div style={styles.modalBody}>
+                    {/* Customer, Date, Payment Type Row */}
                     <div style={styles.formRow}>
                         <div style={{ ...styles.formGroup, flex: '0 0 calc(37% - 8px)' }}>
                             <label style={styles.label}>Customer</label>
@@ -545,7 +551,6 @@ export default function AppointmentEditModal({ isOpen, onClose, onSave, prefille
                                         />
                                     </div>
                                 </div>
-
                                 <div style={styles.formRow}>
                                     <div style={styles.formGroup}>
                                         <label style={styles.label}>Comment/Note</label>

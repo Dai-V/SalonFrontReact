@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import React from 'react';
 import AppointmentAddModal from './AppointmentAddModal';
 import AppointmentEditModal from './AppointmentEditModal';
-import Calendar from './Calendar.jsx';
-import { formatLocalDate } from '../utils/dateUtils';
+import Calendar from '../Calendar.jsx';
+import { formatLocalDate } from '../../utils/dateUtils.js';
 
 export default function Appointments() {
     const [technicians, setTechnicians] = useState([]);
@@ -15,6 +15,7 @@ export default function Appointments() {
     const [clickedAppointment, setClickedAppointment] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [loading, setLoading] = useState(false);
+    const [currentTime, setCurrentTime] = useState(new Date());
     const [hoveredAppointment, setHoveredAppointment] = useState(null);
     const apiURL = import.meta.env.VITE_API_URL;
     const tableContainerRef = React.useRef(null);
@@ -31,6 +32,14 @@ export default function Appointments() {
         }
         return slots;
     };
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 60000); // update every minute
+
+        return () => clearInterval(interval);
+    }, []);
 
     const timeSlots = generateTimeSlots();
 
@@ -104,7 +113,7 @@ export default function Appointments() {
             const currentSlotIndex = timeSlots.findIndex(slot => slot.time === currentTime);
 
             if (currentSlotIndex !== -1) {
-                const rowHeight = 21;
+                const rowHeight = 24.5;
                 const scrollPosition = (currentSlotIndex * rowHeight);
                 tableContainerRef.current.scrollTop = scrollPosition;
             }
@@ -112,16 +121,16 @@ export default function Appointments() {
     }, []);
 
     const getCurrentTimePosition = () => {
-        const now = new Date();
+        const now = currentTime;
         const currentHour = now.getHours();
         const currentMinute = now.getMinutes();
 
         if (currentHour < 6 || currentHour >= 18) return null;
 
         const minutesSince6AM = (currentHour - 6) * 60 + currentMinute;
-        const rowHeight = 21;
-        const headerHeight = 45;
-        const position = (minutesSince6AM / 15) * rowHeight + headerHeight;
+        const rowHeight = 24.5;
+        const headerHeight = 42.5;
+        const position = (minutesSince6AM / 15) * (rowHeight) + headerHeight;
 
         return position;
     };

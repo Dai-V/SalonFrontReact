@@ -3,7 +3,7 @@ import TotalsByDayOfWeekChart from './TotalsByDayOfWeekChart';
 import TopServices from './TopServices';
 import AppointmentsByStatus from './AppointmentsByStatus';
 import TotalRevenue from './TotalRevenue';
-import { formatLocalDate } from '../utils/dateUtils';
+import { formatLocalDate } from '../../utils/dateUtils';
 
 export default function Dashboard() {
     const apiURL = import.meta.env.VITE_API_URL;
