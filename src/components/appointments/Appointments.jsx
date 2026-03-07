@@ -3,6 +3,7 @@ import AppointmentAddModal from './AppointmentAddModal';
 import AppointmentEditModal from './AppointmentEditModal';
 import DraggableAppointmentCell from './DraggableAppointmentCell';
 import DroppableCell from './DroppableCell';
+import ErrorMessagePopup from '../ErrorMessagePopup.jsx';
 import Calendar from '../Calendar.jsx';
 import { formatLocalDate } from '../../utils/dateUtils.js';
 import { DragDropProvider } from '@dnd-kit/react';
@@ -39,6 +40,7 @@ export default function Appointments() {
     const [appointments, setAppointments] = useState([]);
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [errorMessage, setErrorMessage] = useState(null);
     const [clickedTime, setClickedTime] = useState('');
     const [clickedTechID, setClickedTechID] = useState('');
     const [clickedAppointment, setClickedAppointment] = useState(null);
@@ -56,6 +58,22 @@ export default function Appointments() {
         const interval = setInterval(() => setCurrentTime(new Date()), 60000);
         return () => clearInterval(interval);
     }, []);
+
+    const updateAppointment = (appointmentId, appointmentData) => {
+        return fetch(`${apiURL}/appointments/${appointmentId}/`, {
+            method: 'PUT',
+            headers: new Headers({
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-CSRFToken': sessionStorage.getItem('csrfToken'),
+            }),
+            credentials: 'include',
+            body: JSON.stringify(appointmentData),
+        }).then(res => {
+            if (res.ok) fetchTechnicians();
+            else if (res.status === 409) setErrorMessage('This time slot is already booked. Please choose a different time.');
+        });
+    };
 
 
     const handleQuickStatusChange = (appointment, newStatus) => {
@@ -110,20 +128,17 @@ export default function Appointments() {
             }),
             credentials: 'include',
             body: JSON.stringify(appointmentData),
-        }).then(res => { if (res.ok) fetchTechnicians(); });
+        }).then(res => {
+            if (res.ok) {
+                fetchTechnicians()
+            }
+            else if (res.status === 409) setErrorMessage('This time slot is already booked. Please choose a different time.');
+
+        });
     };
 
     const handleEditAppointment = (appointmentData) => {
-        fetch(`${apiURL}/appointments/${clickedAppointment.AppID}/`, {
-            method: 'PUT',
-            headers: new Headers({
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-CSRFToken': sessionStorage.getItem('csrfToken'),
-            }),
-            credentials: 'include',
-            body: JSON.stringify(appointmentData),
-        }).then(res => { if (res.ok) fetchTechnicians(); });
+        updateAppointment(clickedAppointment.AppID, appointmentData);
     };
 
     const fetchTechnicians = async () => {
@@ -182,11 +197,8 @@ export default function Appointments() {
         const { source, target } = event.operation;
         if (!source || !target) return;
 
-        // draggable id  → "apt-{AppID}-{ServiceID}"
-        // droppable id  → "cell-{TechID}-{timeSlot}"   e.g. "cell-3-08:30"
         const [, appId, serviceId] = source.id.split('-');
         const [, newTechId, newTime] = target.id.split('-');
-
         if (!appId || !newTechId || !newTime) return;
 
         const appointment = appointments.find(a => String(a.AppID) === appId);
@@ -198,26 +210,11 @@ export default function Appointments() {
                 : s
         );
 
-        const appointmentData = {
+        updateAppointment(appointment.AppID, {
             ...appointment,
             CustomerID: appointment.CustomerID.CustomerID,
             Services: updatedServices,
-        };
-
-        fetch(`${apiURL}/appointments/${appointment.AppID}/`, {
-            method: 'PUT',
-            headers: new Headers({
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-CSRFToken': sessionStorage.getItem('csrfToken'),
-            }),
-            credentials: 'include',
-            body: JSON.stringify(appointmentData),
-        }).then(
-            res => {
-                if (res.ok) fetchTechnicians();
-            }
-        );
+        });
     };
 
     return (
@@ -225,6 +222,13 @@ export default function Appointments() {
             <Calendar
                 selectedDate={selectedDate}
                 onDateChange={(date) => setSelectedDate(date)}
+            />
+
+            <ErrorMessagePopup
+                isOpen={!!errorMessage}
+                onClose={() => setErrorMessage(null)}
+                title="Scheduling Conflict"
+                message={errorMessage}
             />
 
             <DragDropProvider
