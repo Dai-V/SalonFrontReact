@@ -1,7 +1,8 @@
 import { useDroppable } from '@dnd-kit/react';
 
-export default function DroppableCell({ id, style, onMouseEnter, onMouseLeave, onClick }) {
-    const { ref, isOver } = useDroppable({ id });
+export default function DroppableCell({ id, isOver, style, onMouseEnter, onMouseLeave, onClick }) {
+    const { ref } = useDroppable({ id });  // still needed for drop registration
+
     return (
         <td
             ref={ref}
@@ -10,8 +11,6 @@ export default function DroppableCell({ id, style, onMouseEnter, onMouseLeave, o
                 backgroundColor: isOver ? '#bae6fd' : style.backgroundColor,
                 outline: isOver ? '2px dashed #0284c7' : 'none',
                 transition: 'background-color 0.15s',
-                minHeight: '24px',
-                height: '100%',
             }}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}

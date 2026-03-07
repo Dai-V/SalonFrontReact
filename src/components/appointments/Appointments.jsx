@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
-import React from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import AppointmentAddModal from './AppointmentAddModal';
 import AppointmentEditModal from './AppointmentEditModal';
 import DraggableAppointmentCell from './DraggableAppointmentCell';
@@ -7,6 +6,32 @@ import DroppableCell from './DroppableCell';
 import Calendar from '../Calendar.jsx';
 import { formatLocalDate } from '../../utils/dateUtils.js';
 import { DragDropProvider } from '@dnd-kit/react';
+
+function generateTimeSlots() {
+    const slots = [];
+    for (let hour = 6; hour < 18; hour++) {
+        for (let minute = 0; minute < 60; minute += 15) {
+            const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+            const displayTime = `${(hour > 12 ? hour - 12 : hour)}:${minute.toString().padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`;
+            slots.push({ time, displayTime });
+        }
+    }
+    return slots;
+}
+
+const TIME_SLOTS = generateTimeSlots();
+
+const STATUS_CONFIG = {
+    Open: { backgroundColor: '#dbeafe', hoverColor: '#93c5fd', borderColor: '#3b82f6' },
+    Closed: { backgroundColor: '#e5e7eb', hoverColor: '#d1d5db', borderColor: '#6b7280' },
+    Pending: { backgroundColor: '#d1fae5', hoverColor: '#a7f3d0', borderColor: '#10b981' },
+};
+
+const getAppointmentCellStyle = (status) => ({
+    ...styles.appointmentCell,
+    backgroundColor: STATUS_CONFIG[status]?.backgroundColor || '#dbeafe',
+    boxShadow: `inset 2px 0 0 ${STATUS_CONFIG[status]?.borderColor || '#3b82f6'}`,
+});
 
 
 export default function Appointments() {
@@ -21,39 +46,17 @@ export default function Appointments() {
     const [loading, setLoading] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
     const [hoveredAppointment, setHoveredAppointment] = useState(null);
+    const [hoveredCell, setHoveredCell] = useState(null);
     const apiURL = import.meta.env.VITE_API_URL;
-    const tableContainerRef = React.useRef(null);
+    const tableContainerRef = useRef(null);
 
-    const generateTimeSlots = () => {
-        const slots = [];
-        for (let hour = 6; hour < 18; hour++) {
-            for (let minute = 0; minute < 60; minute += 15) {
-                const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-                const displayTime = `${(hour > 12 ? hour - 12 : hour)}:${minute.toString().padStart(2, '0')} ${hour >= 12 ? 'PM' : 'AM'}`;
-                slots.push({ time, displayTime });
-            }
-        }
-        return slots;
-    };
+
 
     useEffect(() => {
         const interval = setInterval(() => setCurrentTime(new Date()), 60000);
         return () => clearInterval(interval);
     }, []);
 
-    const timeSlots = generateTimeSlots();
-
-    const STATUS_CONFIG = {
-        Open: { backgroundColor: '#dbeafe', hoverColor: '#93c5fd', borderColor: '#3b82f6' },
-        Closed: { backgroundColor: '#e5e7eb', hoverColor: '#d1d5db', borderColor: '#6b7280' },
-        Pending: { backgroundColor: '#d1fae5', hoverColor: '#a7f3d0', borderColor: '#10b981' },
-    };
-
-    const getAppointmentCellStyle = (status) => ({
-        ...styles.appointmentCell,
-        backgroundColor: STATUS_CONFIG[status]?.backgroundColor || '#dbeafe',
-        boxShadow: `inset 2px 0 0 ${STATUS_CONFIG[status]?.borderColor || '#3b82f6'}`,
-    });
 
     const handleQuickStatusChange = (appointment, newStatus) => {
         const appointmentData = {
@@ -82,7 +85,7 @@ export default function Appointments() {
             const now = new Date();
             const roundedMinute = Math.floor(now.getMinutes() / 15) * 15;
             const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${roundedMinute.toString().padStart(2, '0')}`;
-            const currentSlotIndex = timeSlots.findIndex(slot => slot.time === currentTimeStr);
+            const currentSlotIndex = TIME_SLOTS.findIndex(slot => slot.time === currentTimeStr);
             if (currentSlotIndex !== -1) {
                 tableContainerRef.current.scrollTop = currentSlotIndex * 24.5;
             }
@@ -157,7 +160,7 @@ export default function Appointments() {
         const map = {};
         technicians.forEach(tech => {
             map[tech.TechID] = {};
-            timeSlots.forEach((slot, index) => {
+            TIME_SLOTS.forEach((slot, index) => {
                 const result = getServiceForSlot(tech.TechID, slot.time);
                 if (result) {
                     const span = calculateSlotSpan(result.service);
@@ -169,10 +172,12 @@ export default function Appointments() {
         return map;
     };
 
-    const appointmentMap = buildAppointmentMap();
+    const appointmentMap = useMemo(() => buildAppointmentMap(), [appointments, technicians]);
+
 
     // ─── Drag end: move service to new tech + time slot ─────────────────────
     const handleDragEnd = (event) => {
+        setHoveredCell(null);
         if (event.canceled) return;
         const { source, target } = event.operation;
         if (!source || !target) return;
@@ -208,7 +213,11 @@ export default function Appointments() {
             }),
             credentials: 'include',
             body: JSON.stringify(appointmentData),
-        }).then(res => { if (res.ok) fetchTechnicians(); });
+        }).then(
+            res => {
+                if (res.ok) fetchTechnicians();
+            }
+        );
     };
 
     return (
@@ -218,7 +227,12 @@ export default function Appointments() {
                 onDateChange={(date) => setSelectedDate(date)}
             />
 
-            <DragDropProvider onDragEnd={handleDragEnd}>
+            <DragDropProvider
+                onDragEnd={handleDragEnd}
+                onDragOver={(event) => {
+                    setHoveredCell(event.operation?.target?.id ?? null);
+                }}
+            >
                 <div style={styles.tableContainer} ref={tableContainerRef}>
                     {loading ? (
                         <div style={styles.loadingContainer}>
@@ -241,7 +255,7 @@ export default function Appointments() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {timeSlots.map((slot, index) => {
+                                    {TIME_SLOTS.map((slot, index) => {
                                         const isHourMark = slot.time.endsWith(':00');
                                         const isHalfHour = slot.time.endsWith(':30');
 
@@ -330,6 +344,7 @@ export default function Appointments() {
                                                                 ...styles.tableCell,
                                                                 backgroundColor: (isHourMark || isHalfHour) ? '#f9fafb' : 'transparent',
                                                             }}
+                                                            isOver={hoveredCell === droppableId}
                                                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e0f2fe'}
                                                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = (isHourMark || isHalfHour) ? '#f9fafb' : 'transparent'}
                                                             onClick={() => {
