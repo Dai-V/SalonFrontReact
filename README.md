@@ -4,9 +4,9 @@ Features for next patch:
 - Forgot password
 - Prevent double booking
 - Recurring appointments
+
+
 Planned Features:
-
-
 Appointments:
 + View a specific date's appointment (Done)
 + Create appointment  (Done)

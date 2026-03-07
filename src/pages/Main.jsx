@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import NavBar from '../components/NavBar.jsx';
 import Customers from '../components/customers/Customers.jsx';
-import Technicians from '../components/Technicians.jsx';
+import Technicians from '../components/technicians/Technicians.jsx';
 import Appointments from '../components/appointments/Appointments.jsx';
 import Dashboard from '../components/dashboard/Dashboard.jsx';
 import { Link, useNavigate } from "react-router-dom"
-import SavedServices from '../components/SavedServices.jsx';
+import SavedServices from '../components/savedServices/SavedServices.jsx';
 
 export default function Main() {
     const [activePage, setActivePage] = useState('Dashboard');

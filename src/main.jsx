@@ -7,6 +7,7 @@ import './index.css'
 import App from './App.jsx'
 import Main from './pages/Main.jsx'
 
+
 createRoot(document.getElementById('root')).render(
   <BrowserRouter>
     <Routes>

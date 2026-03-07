@@ -175,7 +175,6 @@ export default function Customers() {
 
 const styles = {
     container: {
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         padding: '0',
     },
     header: {
@@ -205,7 +204,6 @@ const styles = {
         fontWeight: '500',
         cursor: 'pointer',
         transition: 'background-color 0.2s',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     searchContainer: {
         marginBottom: '20px',
@@ -220,7 +218,6 @@ const styles = {
         outline: 'none',
         backgroundColor: '#ffffff',
         boxSizing: 'border-box',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         color: 'black'
     },
     tableContainer: {
@@ -307,7 +304,6 @@ const styles = {
         fontWeight: '500',
         cursor: 'pointer',
         transition: 'all 0.2s',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     deleteButton: {
         backgroundColor: 'transparent',
@@ -319,7 +315,6 @@ const styles = {
         fontWeight: '500',
         cursor: 'pointer',
         transition: 'all 0.2s',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     footer: {
         marginTop: '16px',

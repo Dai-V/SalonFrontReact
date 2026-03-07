@@ -259,7 +259,6 @@ const styles = {
         width: '90%',
         maxWidth: '700px',
         boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     modalHeader: {
         display: 'flex',
@@ -287,7 +286,6 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     tabContainer: {
         display: 'flex',
@@ -303,9 +301,7 @@ const styles = {
         fontWeight: '500',
         color: '#6b7280',
         cursor: 'pointer',
-        transition: 'all 0.2s',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        outline: 'none',
+        transition: 'all 0.2s', outline: 'none',
     },
     activeTab: {
         color: '#2563eb',
@@ -450,6 +446,5 @@ const styles = {
         fontWeight: '500',
         cursor: 'pointer',
         transition: 'background-color 0.2s',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
 };
