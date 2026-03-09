@@ -17,11 +17,8 @@ Dashboard:
 (Daily, weekly, monthly, yearly)  (Done) 
 
 Totals:
-+ Show totals done by each technician (Name, total amount of Services done, total prices) ( DONE)
-- For today by default
-- For a single date
-- For a range of dates
-+ Show totals paid in each payment types ( DONE)
++ Show totals done by each technician ( Done )
++ Show totals paid in each payment types ( Done )
 
 Supplies:
 + View
