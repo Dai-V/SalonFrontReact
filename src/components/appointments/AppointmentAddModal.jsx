@@ -253,10 +253,12 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
 
     // Payment type options
     const paymentTypeOptions = [
-        { value: 'cash', label: 'Cash' },
-        { value: 'credit_card', label: 'Credit Card' },
-        { value: 'debit_card', label: 'Debit Card' },
-        { value: 'check', label: 'Check' }
+        { value: 'Cash', label: 'Cash' },
+        { value: 'Credit Card', label: 'Credit Card' },
+        { value: 'Debit Card', label: 'Debit Card' },
+        { value: 'Venmo', label: 'Venmo' },
+        { value: 'Zelle', label: 'Zelle' },
+        { value: 'Check', label: 'Check' },
     ];
 
     const appStatusOptions = [

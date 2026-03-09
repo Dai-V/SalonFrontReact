@@ -4,6 +4,7 @@ import Customers from '../components/customers/Customers.jsx';
 import Technicians from '../components/technicians/Technicians.jsx';
 import Appointments from '../components/appointments/Appointments.jsx';
 import Dashboard from '../components/dashboard/Dashboard.jsx';
+import Totals from '../components/totals/Totals.jsx';
 import { Link, useNavigate } from "react-router-dom"
 import SavedServices from '../components/savedServices/SavedServices.jsx';
 
@@ -37,6 +38,8 @@ export default function Main() {
             setActiveContent(<Appointments />)
         if (activePage === 'Dashboard')
             setActiveContent(<Dashboard />)
+        if (activePage === 'Totals')
+            setActiveContent(<Totals />)
         getCsrfToken()
     }, [activePage]);
 

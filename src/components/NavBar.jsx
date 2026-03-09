@@ -19,6 +19,7 @@ export default function Sidebar({ onMenuItemClick, onLogout, activeItem = 'Dashb
     const menuItems = [
         { name: 'Dashboard', icon: '📊' },
         { name: 'Appointments', icon: '📅' },
+        { name: 'Totals', icon: '💰' },
         { name: 'Saved Services', icon: '⭐️' },
         { name: 'Technicians', icon: '👨‍🔧' },
         { name: 'Customers', icon: '👥' },

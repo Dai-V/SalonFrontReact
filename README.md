@@ -2,7 +2,6 @@
 
 Features for next patch:
 - Forgot password
-- Prevent double booking
 - Recurring appointments
 
 
@@ -18,11 +17,11 @@ Dashboard:
 (Daily, weekly, monthly, yearly)  (Done) 
 
 Totals:
-+ Show totals done by each technician (Name, total amount of Services done, total prices)
++ Show totals done by each technician (Name, total amount of Services done, total prices) ( DONE)
 - For today by default
 - For a single date
 - For a range of dates
-+ Show totals paid in each payment types
++ Show totals paid in each payment types ( DONE)
 
 Supplies:
 + View
