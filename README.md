@@ -2,7 +2,7 @@
 
 Features for next patch:
 - Forgot password
-- Recurring appointments
+- Email verification
 
 
 Planned Features:
