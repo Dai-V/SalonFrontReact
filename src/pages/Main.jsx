@@ -38,7 +38,7 @@ export default function Main() {
             setActiveContent(<Appointments />)
         if (activePage === 'Dashboard')
             setActiveContent(<Dashboard />)
-        if (activePage === 'Totals')
+        if (activePage === 'Revenue')
             setActiveContent(<Totals />)
         getCsrfToken()
     }, [activePage]);
