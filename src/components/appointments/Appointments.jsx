@@ -246,165 +246,173 @@ export default function Appointments() {
                         <div style={styles.loadingContainer}>
                             <div style={styles.loadingText}>Loading...</div>
                         </div>
-                    ) : (
-                        <>
-                            <table style={styles.table}>
-                                <thead>
-                                    <tr style={styles.tableHeaderRow}>
-                                        <th style={styles.tableHeaderTime}>Time</th>
-                                        {technicians.map(tech => (
-                                            <th key={tech.TechID} style={{
-                                                ...styles.tableHeader,
-                                                width: `calc((100% - 100px) / ${technicians.length})`,
-                                            }}>
-                                                {tech.TechName}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {TIME_SLOTS.map((slot, index) => {
-                                        const isHourMark = slot.time.endsWith(':00');
-                                        const isHalfHour = slot.time.endsWith(':30');
+                    ) : technicians.length === 0 ? (
+                        <div style={styles.emptyState}>
+                            <div style={styles.emptyStateIcon}>📅</div>
+                            <h3 style={styles.emptyStateTitle}>No Technicians Scheduled</h3>
+                            <p style={styles.emptyStateSubtitle}>There are no technicians scheduled for this day. Add a technician schedule to start booking appointments.</p>
+                        </div>
+                    ) :
 
-                                        return (
-                                            <tr key={slot.time} style={styles.tableRow}>
-                                                <td style={{
-                                                    ...styles.timeCell,
-                                                    backgroundColor: (isHourMark || isHalfHour) ? '#f3f4f6' : '#f9fafb',
+                        (
+                            <>
+                                <table style={styles.table}>
+                                    <thead>
+                                        <tr style={styles.tableHeaderRow}>
+                                            <th style={styles.tableHeaderTime}>Time</th>
+                                            {technicians.map(tech => (
+                                                <th key={tech.TechID} style={{
+                                                    ...styles.tableHeader,
+                                                    width: `calc((100% - 100px) / ${technicians.length})`,
                                                 }}>
-                                                    {isHourMark || isHalfHour ? slot.displayTime : '\u00A0'}
-                                                </td>
+                                                    {tech.TechName}
+                                                </th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {TIME_SLOTS.map((slot, index) => {
+                                            const isHourMark = slot.time.endsWith(':00');
+                                            const isHalfHour = slot.time.endsWith(':30');
 
-                                                {technicians.map(tech => {
-                                                    const cellInfo = appointmentMap[tech.TechID][index];
+                                            return (
+                                                <tr key={slot.time} style={styles.tableRow}>
+                                                    <td style={{
+                                                        ...styles.timeCell,
+                                                        backgroundColor: (isHourMark || isHalfHour) ? '#f3f4f6' : '#f9fafb',
+                                                    }}>
+                                                        {isHourMark || isHalfHour ? slot.displayTime : '\u00A0'}
+                                                    </td>
 
-                                                    if (cellInfo?.covered) return null;
+                                                    {technicians.map(tech => {
+                                                        const cellInfo = appointmentMap[tech.TechID][index];
 
-                                                    if (cellInfo?.result) {
-                                                        const { appointment, service } = cellInfo.result;
-                                                        const customerName = appointment.CustomerID
-                                                            ? `${appointment.CustomerID.CustomerFirstName || ''} ${appointment.CustomerID.CustomerLastName || ''}`.trim()
-                                                            : 'Unknown Customer';
-                                                        const appointmentStatus = appointment.AppStatus || 'Open';
-                                                        const isHovered = hoveredAppointment === appointment.AppID;
-                                                        const draggableId = `apt-${appointment.AppID}-${service.ServiceID}`;
+                                                        if (cellInfo?.covered) return null;
 
-                                                        return (
-                                                            <DraggableAppointmentCell
-                                                                key={tech.TechID}
-                                                                id={draggableId}
-                                                                rowSpan={cellInfo.span}
-                                                                style={{
-                                                                    ...getAppointmentCellStyle(appointmentStatus),
-                                                                    position: 'relative',
-                                                                }}
-                                                                onMouseEnter={(e) => {
-                                                                    e.currentTarget.style.backgroundColor = STATUS_CONFIG[appointmentStatus]?.hoverColor || '#93c5fd';
-                                                                    setHoveredAppointment(appointment.AppID);
-                                                                }}
-                                                                onMouseLeave={(e) => {
-                                                                    e.currentTarget.style.backgroundColor = getAppointmentCellStyle(appointmentStatus).backgroundColor;
-                                                                    setHoveredAppointment(null);
-                                                                }}
-                                                                onClick={() => {
-                                                                    setClickedAppointment(appointment);
-                                                                    setShowEditModal(true);
-                                                                }}
-                                                            >
-                                                                <div style={styles.appointmentContent}>
-                                                                    <div style={styles.appointmentClient}>{customerName}</div>
-                                                                    <div style={styles.appointmentService}>{service.ServiceName}</div>
-                                                                    <div style={styles.serviceComment}>{service.ServiceComment}</div>
-                                                                </div>
+                                                        if (cellInfo?.result) {
+                                                            const { appointment, service } = cellInfo.result;
+                                                            const customerName = appointment.CustomerID
+                                                                ? `${appointment.CustomerID.CustomerFirstName || ''} ${appointment.CustomerID.CustomerLastName || ''}`.trim()
+                                                                : 'Unknown Customer';
+                                                            const appointmentStatus = appointment.AppStatus || 'Open';
+                                                            const isHovered = hoveredAppointment === appointment.AppID;
+                                                            const draggableId = `apt-${appointment.AppID}-${service.ServiceID}`;
 
-                                                                {isHovered && (
-                                                                    <div style={styles.quickActionsContainer}>
-                                                                        {appointmentStatus === 'Open' && (
-                                                                            <button
-                                                                                style={styles.quickActionButton}
-                                                                                onClick={(e) => { e.stopPropagation(); handleQuickStatusChange(appointment, 'Pending'); }}
-                                                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#059669'}
-                                                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
-                                                                            >✓ Check In</button>
-                                                                        )}
-                                                                        {appointmentStatus === 'Pending' && (
-                                                                            <button
-                                                                                style={styles.quickActionButton}
-                                                                                onClick={(e) => { e.stopPropagation(); handleQuickStatusChange(appointment, 'Closed'); }}
-                                                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#4b5563'}
-                                                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6b7280'}
-                                                                            >✓ Complete</button>
-                                                                        )}
+                                                            return (
+                                                                <DraggableAppointmentCell
+                                                                    key={tech.TechID}
+                                                                    id={draggableId}
+                                                                    rowSpan={cellInfo.span}
+                                                                    style={{
+                                                                        ...getAppointmentCellStyle(appointmentStatus),
+                                                                        position: 'relative',
+                                                                    }}
+                                                                    onMouseEnter={(e) => {
+                                                                        e.currentTarget.style.backgroundColor = STATUS_CONFIG[appointmentStatus]?.hoverColor || '#93c5fd';
+                                                                        setHoveredAppointment(appointment.AppID);
+                                                                    }}
+                                                                    onMouseLeave={(e) => {
+                                                                        e.currentTarget.style.backgroundColor = getAppointmentCellStyle(appointmentStatus).backgroundColor;
+                                                                        setHoveredAppointment(null);
+                                                                    }}
+                                                                    onClick={() => {
+                                                                        setClickedAppointment(appointment);
+                                                                        setShowEditModal(true);
+                                                                    }}
+                                                                >
+                                                                    <div style={styles.appointmentContent}>
+                                                                        <div style={styles.appointmentClient}>{customerName}</div>
+                                                                        <div style={styles.appointmentService}>{service.ServiceName}</div>
+                                                                        <div style={styles.serviceComment}>{service.ServiceComment}</div>
                                                                     </div>
-                                                                )}
-                                                            </DraggableAppointmentCell>
+
+                                                                    {isHovered && (
+                                                                        <div style={styles.quickActionsContainer}>
+                                                                            {appointmentStatus === 'Open' && (
+                                                                                <button
+                                                                                    style={styles.quickActionButton}
+                                                                                    onClick={(e) => { e.stopPropagation(); handleQuickStatusChange(appointment, 'Pending'); }}
+                                                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#059669'}
+                                                                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
+                                                                                >✓ Check In</button>
+                                                                            )}
+                                                                            {appointmentStatus === 'Pending' && (
+                                                                                <button
+                                                                                    style={styles.quickActionButton}
+                                                                                    onClick={(e) => { e.stopPropagation(); handleQuickStatusChange(appointment, 'Closed'); }}
+                                                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#4b5563'}
+                                                                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#6b7280'}
+                                                                                >✓ Complete</button>
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                </DraggableAppointmentCell>
+                                                            );
+                                                        }
+
+                                                        // Empty droppable cell
+                                                        const droppableId = `cell-${tech.TechID}-${slot.time}`;
+                                                        return (
+                                                            <DroppableCell
+                                                                key={tech.TechID}
+                                                                id={droppableId}
+                                                                style={{
+                                                                    ...styles.tableCell,
+                                                                    backgroundColor: (isHourMark || isHalfHour) ? '#f9fafb' : 'transparent',
+                                                                }}
+                                                                isOver={hoveredCell === droppableId}
+                                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e0f2fe'}
+                                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = (isHourMark || isHalfHour) ? '#f9fafb' : 'transparent'}
+                                                                onClick={() => {
+                                                                    setClickedTime(slot.time);
+                                                                    setClickedTechID(tech.TechID);
+                                                                    setShowAddModal(true);
+                                                                }}
+                                                            />
                                                         );
-                                                    }
+                                                    })}
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
 
-                                                    // Empty droppable cell
-                                                    const droppableId = `cell-${tech.TechID}-${slot.time}`;
-                                                    return (
-                                                        <DroppableCell
-                                                            key={tech.TechID}
-                                                            id={droppableId}
-                                                            style={{
-                                                                ...styles.tableCell,
-                                                                backgroundColor: (isHourMark || isHalfHour) ? '#f9fafb' : 'transparent',
-                                                            }}
-                                                            isOver={hoveredCell === droppableId}
-                                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e0f2fe'}
-                                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = (isHourMark || isHalfHour) ? '#f9fafb' : 'transparent'}
-                                                            onClick={() => {
-                                                                setClickedTime(slot.time);
-                                                                setClickedTechID(tech.TechID);
-                                                                setShowAddModal(true);
-                                                            }}
-                                                        />
-                                                    );
-                                                })}
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-
-                            {getCurrentTimePosition() !== null && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: `${getCurrentTimePosition()}px`,
-                                    left: 0, right: 0,
-                                    height: '2px',
-                                    backgroundColor: '#ef4444',
-                                    zIndex: 15,
-                                    pointerEvents: 'none',
-                                }}>
+                                {getCurrentTimePosition() !== null && (
                                     <div style={{
                                         position: 'absolute',
-                                        left: '0', top: '-4px',
-                                        width: '8px', height: '8px',
+                                        top: `${getCurrentTimePosition()}px`,
+                                        left: 0, right: 0,
+                                        height: '2px',
                                         backgroundColor: '#ef4444',
-                                        borderRadius: '50%',
-                                    }} />
-                                </div>
-                            )}
+                                        zIndex: 15,
+                                        pointerEvents: 'none',
+                                    }}>
+                                        <div style={{
+                                            position: 'absolute',
+                                            left: '0', top: '-4px',
+                                            width: '8px', height: '8px',
+                                            backgroundColor: '#ef4444',
+                                            borderRadius: '50%',
+                                        }} />
+                                    </div>
+                                )}
 
-                            <AppointmentAddModal
-                                isOpen={showAddModal}
-                                onClose={() => setShowAddModal(false)}
-                                onSave={handleAddAppointment}
-                                prefilledTechID={clickedTechID}
-                                prefilledTime={clickedTime}
-                                selectedDate={selectedDate}
-                            />
-                            <AppointmentEditModal
-                                isOpen={showEditModal}
-                                onClose={() => setShowEditModal(false)}
-                                onSave={handleEditAppointment}
-                                prefilledAppointment={clickedAppointment}
-                            />
-                        </>
-                    )}
+                                <AppointmentAddModal
+                                    isOpen={showAddModal}
+                                    onClose={() => setShowAddModal(false)}
+                                    onSave={handleAddAppointment}
+                                    prefilledTechID={clickedTechID}
+                                    prefilledTime={clickedTime}
+                                    selectedDate={selectedDate}
+                                />
+                                <AppointmentEditModal
+                                    isOpen={showEditModal}
+                                    onClose={() => setShowEditModal(false)}
+                                    onSave={handleEditAppointment}
+                                    prefilledAppointment={clickedAppointment}
+                                />
+                            </>
+                        )}
                 </div>
             </DragDropProvider>
         </div>
@@ -474,4 +482,29 @@ const styles = {
     },
     loadingContainer: { display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px' },
     loadingText: { fontSize: '14px', color: '#6b7280' },
+    emptyState: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '64px 32px',
+        textAlign: 'center',
+    },
+    emptyStateIcon: {
+        fontSize: '48px',
+        marginBottom: '16px',
+    },
+    emptyStateTitle: {
+        fontSize: '18px',
+        fontWeight: '600',
+        color: '#111827',
+        margin: '0 0 8px 0',
+    },
+    emptyStateSubtitle: {
+        fontSize: '14px',
+        color: '#6b7280',
+        maxWidth: '320px',
+        lineHeight: '1.5',
+        margin: 0,
+    },
 };

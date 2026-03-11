@@ -19,7 +19,12 @@ export default function Main() {
             credentials: 'include',
         })
             .then(response => {
-                return response.json()
+                if (!response.ok) {
+                    navigate('/login');
+                }
+                else {
+                    return response.json();
+                }
             })
             .then(data => {
                 sessionStorage.setItem('csrfToken', data['X-CSRFToken']);

@@ -103,9 +103,8 @@ export default function SignupPage() {
                 const data = response.json();
                 setErrors(data);
             } else {
-                navigate("/login");
+                navigate("/login", { state: { message: 'Signup successful! Please check your email to verify your account.' } });
             }
-            return response.json();
         })
     };
 

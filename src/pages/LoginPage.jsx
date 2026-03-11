@@ -1,14 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import logo from '../assets/logo.svg'
-import { Link, useNavigate } from "react-router-dom"
+import { Link, useNavigate, useLocation } from "react-router-dom"
+
+
 
 export default function LoginPage() {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [errors, setErrors] = useState({});
-    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
     const apiURL = import.meta.env.VITE_API_URL;
+    const location = useLocation();
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [successMessage, setSuccessMessage] = useState(location.state?.message || null);
+    const [showResend, setShowResend] = useState(false);
+    const [errors, setErrors] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+
+
+
+    useEffect(() => {
+        if (successMessage) {
+            // Clear the state from history so it doesn't reappear on refresh
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, []);
 
     const validateForm = () => {
         const newErrors = {};
@@ -25,8 +39,9 @@ export default function LoginPage() {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = () => {
-        // Clear previous errors
+    const handleSubmit = async () => {
+        // Clear previous 
+        setSuccessMessage(null);
         setErrors({});
 
         // Validate form
@@ -36,29 +51,31 @@ export default function LoginPage() {
 
         setIsLoading(true);
 
-        fetch(apiURL + '/login/', {
-            method: 'POST',
-            headers: new Headers({
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-            }),
-            credentials: 'include',
-            body: JSON.stringify({ username: username, password: password })
-        })
-            .then(response => {
-                if (response.ok) {
-                    navigate("/main");
-                    return response.json();
-                } else if (response.status === 404) {
-                    throw new Error('Invalid username or password');
-                } else {
-                    throw new Error('Something went wrong. Please try again.');
-                }
-            })
-            .catch(error => {
-                setErrors({ general: error.message });
-                setIsLoading(false);
+        try {
+            const response = await fetch(apiURL + '/login/', {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ username, password })
             });
+
+            if (response.ok) {
+                navigate("/main");
+            } else if (response.status === 404) {
+                throw new Error('Invalid username or password.');
+            } else if (response.status === 403) {
+                const data = await response.json();
+                setShowResend(true);
+                throw new Error(data.message || 'Please verify your email.');
+            }
+            else {
+                const data = await response.json();
+                throw new Error(data.message || 'Something went wrong. Please try again.');
+            }
+        } catch (error) {
+            setErrors({ general: error.message });
+            setIsLoading(false);
+        }
     };
 
     const handleKeyPress = (e) => {
@@ -66,6 +83,16 @@ export default function LoginPage() {
             handleSubmit();
         }
     };
+    const handleResend = async () => {
+        await fetch(apiURL + '/send-verification-email/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username })
+        });
+        setErrors({});
+        setSuccessMessage('Verification email resent! Check your inbox.');
+        setShowResend(false);
+    }
 
     return (
         <div style={styles.container}>
@@ -89,6 +116,18 @@ export default function LoginPage() {
                     {errors.general && (
                         <div style={styles.errorBox}>
                             {errors.general}
+                            {showResend && (
+                                <button onClick={handleResend} style={styles.resendButton}>
+                                    Resend verification email
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+
+                    {successMessage && (
+                        <div style={styles.successBox}>
+                            {successMessage}
                         </div>
                     )}
 
@@ -102,6 +141,7 @@ export default function LoginPage() {
                             value={username}
                             onChange={(e) => {
                                 setUsername(e.target.value);
+                                setShowResend(false);
                                 if (errors.username) {
                                     setErrors({ ...errors, username: null });
                                 }
@@ -129,6 +169,7 @@ export default function LoginPage() {
                             autoComplete="current-password"
                             onChange={(e) => {
                                 setPassword(e.target.value);
+                                setShowResend(false);
                                 if (errors.password) {
                                     setErrors({ ...errors, password: null });
                                 }
@@ -202,6 +243,15 @@ const styles = {
     brandContainer: {
         textAlign: 'center',
     },
+    successBox: {
+        backgroundColor: '#dcfce7',
+        color: '#166534',
+        padding: '12px 16px',
+        borderRadius: '8px',
+        fontSize: '14px',
+        marginBottom: '20px',
+        border: '1px solid #bbf7d0',
+    },
     logo: {
         width: '96px',
         height: '96px',
@@ -220,6 +270,17 @@ const styles = {
     subtitle: {
         fontSize: '20px',
         color: '#bfdbfe',
+    },
+    resendButton: {
+        background: 'none',
+        border: 'none',
+        color: '#2563eb',
+        fontSize: '14px',
+        cursor: 'pointer',
+        padding: '0',
+        display: 'inline-block',
+        textDecoration: 'underline',
+        marginLeft: '10px',
     },
     rightSide: {
         width: '50%',
