@@ -43,6 +43,7 @@ export default function Appointments() {
     const [errorMessage, setErrorMessage] = useState(null);
     const [clickedTime, setClickedTime] = useState('');
     const [clickedTechID, setClickedTechID] = useState('');
+    const [clickedTechCommissionRate, setClickedTechCommissionRate] = useState(0);
     const [clickedAppointment, setClickedAppointment] = useState(null);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [loading, setLoading] = useState(false);
@@ -373,6 +374,7 @@ export default function Appointments() {
                                                                 onClick={() => {
                                                                     setClickedTime(slot.time);
                                                                     setClickedTechID(tech.TechID);
+                                                                    setClickedTechCommissionRate(tech.TechCommissionRate)
                                                                     setShowAddModal(true);
                                                                 }}
                                                             />
@@ -410,6 +412,7 @@ export default function Appointments() {
                                     onSave={handleAddAppointment}
                                     prefilledTechID={clickedTechID}
                                     prefilledTime={clickedTime}
+                                    prefilledCommissionRate={clickedTechCommissionRate}
                                     selectedDate={selectedDate}
                                 />
                                 <AppointmentEditModal
