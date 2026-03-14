@@ -151,6 +151,7 @@ const styles = {
         color: '#111827',
         cursor: 'pointer',
         userSelect: 'none',
+        width: '350px'
     },
 
     dateRow: {
