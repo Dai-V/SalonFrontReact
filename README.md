@@ -1,8 +1,9 @@
 (WIP)
 
 Features for next patch:
-- Forgot password
-- Email verification
+- Recurring Appointments
+- Recurring Schedules fot technicians (including time for each date)
+
 
 
 Planned Features:
@@ -56,4 +57,6 @@ Authentication:
 + Login (Done)
 + Logout (Done) 
 + Signup (Done)
++ Forgot Password (Done)
++ Email Verification (Done)
 

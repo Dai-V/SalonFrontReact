@@ -113,7 +113,7 @@ const styles = {
     },
     contentHeader: {
         padding: '1.65rem',
-        backgroundColor: '#ffffff',
+        backgroundColor: '#f5f5f5 ',
         borderBottom: '1px solid #e5e7eb',
         marginLeft: '-1px',
     },

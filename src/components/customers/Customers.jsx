@@ -218,6 +218,7 @@ const styles = {
         outline: 'none',
         backgroundColor: '#ffffff',
         boxSizing: 'border-box',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         color: 'black'
     },
     tableContainer: {

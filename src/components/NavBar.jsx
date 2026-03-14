@@ -100,7 +100,7 @@ export default function Sidebar({ onMenuItemClick, onLogout, activeItem = 'Dashb
 
 const styles = {
     sidebar: {
-        backgroundColor: '#ffffff',
+        backgroundColor: '#f5f5f5 ',
         borderRight: '1px solid #e5e7eb',
         display: 'flex',
         flexDirection: 'column',
