@@ -1,10 +1,11 @@
 (WIP)
 
-Features for next patch:
+Features for next patch
+- Add auto redirection to login for reset password success
+- Add the same strong password reinforcement for reset password
 - Recurring Appointments
 - Recurring Schedules fot technicians (including time for each date)
-- Add backbar cost to services
-- Add commission rate for each technician
+
 
 
 Planned Features:
