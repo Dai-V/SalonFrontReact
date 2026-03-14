@@ -191,9 +191,7 @@ export default function LoginPage() {
                             <input type="checkbox" style={styles.checkbox} />
                             <span style={styles.checkboxText}>Remember me</span>
                         </label>
-                        <a href="#" style={styles.link}>
-                            Forgot password?
-                        </a>
+                        <Link to="/forgot-password" style={styles.link}>Forgot password?</Link>
                     </div>
 
                     <button
@@ -229,7 +227,6 @@ const styles = {
         position: 'fixed',
         top: 0,
         left: 0,
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     leftSide: {
         width: '50%',
