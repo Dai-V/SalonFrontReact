@@ -208,9 +208,16 @@ export default function Appointments() {
         const appointment = appointments.find(a => String(a.AppID) === appId);
         if (!appointment) return;
 
+        const newTech = technicians.find(t => t.TechID === Number(newTechId));
+
         const updatedServices = appointment.Services.map(s =>
             String(s.ServiceID) === serviceId
-                ? { ...s, TechID: Number(newTechId), ServiceStartTime: `${newTime}:00` }
+                ? {
+                    ...s,
+                    TechID: Number(newTechId),
+                    ServiceStartTime: `${newTime}:00`,
+                    ServiceCommissionRate: newTech?.TechCommissionRate ?? s.ServiceCommissionRate,
+                }
                 : s
         );
 

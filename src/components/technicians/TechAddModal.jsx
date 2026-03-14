@@ -1,21 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import TechHistoryModal from './TechHistoryModal.jsx';
+import TechScheduleModal from './TechScheduleModal.jsx';
 
-export default function TechAddModal({ isOpen, onClose, onSave }) {
-    const [newTech, setNewTech] = useState({
+export default function TechEditModal({ isOpen, onClose, onSave, editTech }) {
+    const [tech, setTech] = useState({
         name: '',
         email: '',
         phone: '',
         info: '',
-        openSchedules: false,
+        commissionRate: '',
     });
 
     const [errors, setErrors] = useState({});
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [showScheduleModal, setShowScheduleModal] = useState(false);
+
+    useEffect(() => {
+        if (editTech) {
+            setTech({
+                name: editTech.TechName || '',
+                email: editTech.TechEmail || '',
+                phone: editTech.TechPhone || '',
+                info: editTech.TechInfo || '',
+                commissionRate: editTech.TechCommissionRate ?? '',
+            });
+        }
+    }, [editTech]);
 
     const formatPhoneNumber = (value) => {
-        // Remove all non-numeric characters
         const phoneNumber = value.replace(/\D/g, '');
-
-        // Format as (XXX) XXX-XXXX
         if (phoneNumber.length <= 3) {
             return phoneNumber;
         } else if (phoneNumber.length <= 6) {
@@ -46,16 +59,29 @@ export default function TechAddModal({ isOpen, onClose, onSave }) {
             }
         }
 
-        setNewTech({ ...newTech, [field]: formattedValue });
+        if (field === 'commissionRate') {
+            formattedValue = value.replace(/[^0-9]/g, '');
+            const num = parseInt(formattedValue);
+            if (formattedValue && (num < 0 || num > 100)) {
+                newErrors.commissionRate = 'Commission rate must be between 0 and 100';
+            } else {
+                delete newErrors.commissionRate;
+            }
+        }
+
+        setTech({ ...tech, [field]: formattedValue });
         setErrors(newErrors);
     };
 
     const handleSubmit = () => {
-        // Validate before submitting
         let newErrors = {};
 
-        if (newTech.email && !validateEmail(newTech.email)) {
+        if (tech.email && !validateEmail(tech.email)) {
             newErrors.email = 'Please enter a valid email address';
+        }
+
+        if (tech.commissionRate && parseInt(tech.commissionRate) > 100) {
+            newErrors.commissionRate = 'Commission rate must be between 0 and 100';
         }
 
         if (Object.keys(newErrors).length > 0) {
@@ -63,103 +89,122 @@ export default function TechAddModal({ isOpen, onClose, onSave }) {
             return;
         }
 
-        onSave(newTech);
-        setNewTech({ name: '', email: '', phone: '', info: '', openSchedules: false });
+        onSave({ ...tech, techID: editTech.TechID });
         setErrors({});
     };
 
     const handleClose = () => {
-        setNewTech({ name: '', email: '', phone: '', info: '', openSchedules: false });
         setErrors({});
+        setShowHistoryModal(false);
         onClose();
     };
 
     if (!isOpen) return null;
 
     return (
-        <div style={styles.modalOverlay} onClick={handleClose}>
-            <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-                <div style={styles.modalHeader}>
-                    <h3 style={styles.modalTitle}>Add New Tech</h3>
-                    <button style={styles.closeButton} onClick={handleClose}>×</button>
-                </div>
+        <>
+            <div style={styles.modalOverlay} onClick={handleClose}>
+                <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+                    <div style={styles.modalHeader}>
+                        <h3 style={styles.modalTitle}>Edit Tech</h3>
+                        <button style={styles.closeButton} onClick={handleClose}>×</button>
+                    </div>
 
-                <div style={styles.modalBody}>
-                    <div style={styles.formRow}>
+                    <div style={styles.modalBody}>
                         <div style={styles.formGroup}>
                             <label style={styles.label}>Name</label>
                             <input
                                 type="text"
-                                value={newTech.name}
+                                value={tech.name}
                                 onChange={(e) => handleInputChange('name', e.target.value)}
                                 style={styles.input}
-                                placeholder="Enter name"
+                                placeholder="Enter full name"
+                            />
+                        </div>
+
+                        <div style={styles.formGroup}>
+                            <label style={styles.label}>Email</label>
+                            <input
+                                type="email"
+                                value={tech.email}
+                                onChange={(e) => handleInputChange('email', e.target.value)}
+                                style={{
+                                    ...styles.input,
+                                    borderColor: errors.email ? '#dc2626' : '#e5e7eb',
+                                }}
+                                placeholder="tech@email.com"
+                            />
+                            {errors.email && <span style={styles.errorText}>{errors.email}</span>}
+                        </div>
+
+                        <div style={styles.formGroup}>
+                            <label style={styles.label}>Phone</label>
+                            <input
+                                type="tel"
+                                value={tech.phone}
+                                onChange={(e) => handleInputChange('phone', e.target.value)}
+                                style={styles.input}
+                                placeholder="(555) 123-4567"
+                            />
+                        </div>
+
+                        <div style={styles.formGroup}>
+                            <label style={styles.label}>Commission Rate (%)</label>
+                            <div style={styles.percentInputWrapper}>
+                                <input
+                                    type="text"
+                                    value={tech.commissionRate}
+                                    onChange={(e) => handleInputChange('commissionRate', e.target.value)}
+                                    style={{
+                                        ...styles.input,
+                                        ...styles.percentInput,
+                                        borderColor: errors.commissionRate ? '#dc2626' : '#e5e7eb',
+                                    }}
+                                    placeholder="0"
+                                />
+                                <span style={styles.percentSymbol}>%</span>
+                            </div>
+                            {errors.commissionRate && <span style={styles.errorText}>{errors.commissionRate}</span>}
+                        </div>
+
+                        <div style={styles.formGroup}>
+                            <label style={styles.label}>Additional Information</label>
+                            <textarea
+                                value={tech.info}
+                                onChange={(e) => handleInputChange('info', e.target.value)}
+                                style={styles.textarea}
+                                placeholder="Any additional information about the tech"
+                                rows="3"
                             />
                         </div>
                     </div>
 
-                    <div style={styles.formGroup}>
-                        <label style={styles.label}>Email</label>
-                        <input
-                            type="email"
-                            value={newTech.email}
-                            onChange={(e) => handleInputChange('email', e.target.value)}
-                            style={{
-                                ...styles.input,
-                                borderColor: errors.email ? '#dc2626' : '#e5e7eb',
-                            }}
-                            placeholder="tech@email.com"
-                        />
-                        {errors.email && (
-                            <span style={styles.errorText}>{errors.email}</span>
-                        )}
+                    <div style={styles.modalFooter}>
+                        <button style={styles.historyButton} onClick={() => setShowHistoryModal(true)}>
+                            📋 View History
+                        </button>
+                        <button style={styles.historyButton} onClick={() => setShowScheduleModal(true)}>
+                            📅 View Schedule
+                        </button>
+                        <div style={styles.footerRight}>
+                            <button style={styles.cancelButton} onClick={handleClose}>Cancel</button>
+                            <button style={styles.saveButton} onClick={handleSubmit}>Save Changes</button>
+                        </div>
                     </div>
-
-                    <div style={styles.formGroup}>
-                        <label style={styles.label}>Phone</label>
-                        <input
-                            type="tel"
-                            value={newTech.phone}
-                            onChange={(e) => handleInputChange('phone', e.target.value)}
-                            style={styles.input}
-                            placeholder="(555) 123-4567"
-                        />
-                    </div>
-
-                    <div style={styles.formGroup}>
-                        <label style={styles.label}>Additional Information</label>
-                        <textarea
-                            value={newTech.info}
-                            onChange={(e) => handleInputChange('info', e.target.value)}
-                            style={styles.textarea}
-                            placeholder="Any additional information about the tech"
-                            rows="3"
-                        />
-                    </div>
-
-                    <div style={styles.checkboxGroup}>
-                        <label style={styles.checkboxLabel}>
-                            <input
-                                type="checkbox"
-                                checked={newTech.openSchedules}
-                                onChange={(e) => handleInputChange('openSchedules', e.target.checked)}
-                                style={styles.checkbox}
-                            />
-                            <span style={styles.checkboxText}>Automatically open all schedules</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div style={styles.modalFooter}>
-                    <button style={styles.cancelButton} onClick={handleClose}>
-                        Cancel
-                    </button>
-                    <button style={styles.saveButton} onClick={handleSubmit}>
-                        Add Tech
-                    </button>
                 </div>
             </div>
-        </div>
+
+            <TechHistoryModal
+                isOpen={showHistoryModal}
+                onClose={() => setShowHistoryModal(false)}
+                techID={editTech?.TechID}
+            />
+            <TechScheduleModal
+                isOpen={showScheduleModal}
+                onClose={() => setShowScheduleModal(false)}
+                techID={editTech?.TechID}
+            />
+        </>
     );
 }
 
@@ -210,17 +255,11 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     modalBody: {
         padding: '24px',
         maxHeight: '60vh',
         overflowY: 'auto',
-    },
-    formRow: {
-        display: 'flex',
-        gap: '16px',
-        marginBottom: '20px',
     },
     formGroup: {
         marginBottom: '20px',
@@ -245,6 +284,21 @@ const styles = {
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         color: 'black',
     },
+    percentInputWrapper: {
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+    },
+    percentInput: {
+        paddingRight: '36px',
+    },
+    percentSymbol: {
+        position: 'absolute',
+        right: '14px',
+        fontSize: '14px',
+        color: '#6b7280',
+        pointerEvents: 'none',
+    },
     textarea: {
         width: '100%',
         padding: '10px 16px',
@@ -259,33 +313,28 @@ const styles = {
         minHeight: '60px',
         color: 'black',
     },
-    checkboxGroup: {
-        marginBottom: '20px',
-        borderRadius: '8px',
-    },
-    checkboxLabel: {
-        display: 'flex',
-        alignItems: 'center',
-        cursor: 'pointer',
-    },
-    checkbox: {
-        width: '18px',
-        height: '18px',
-        marginRight: '10px',
-        cursor: 'pointer',
-        accentColor: '#2563eb',
-    },
-    checkboxText: {
-        fontSize: '14px',
-        color: '#374151',
-        fontWeight: '500',
-    },
     modalFooter: {
         display: 'flex',
-        justifyContent: 'flex-end',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         gap: '12px',
         padding: '16px 24px 24px 24px',
         borderTop: '1px solid #e5e7eb',
+    },
+    footerRight: {
+        display: 'flex',
+        gap: '12px',
+    },
+    historyButton: {
+        backgroundColor: '#ffffff',
+        color: '#2563eb',
+        border: '1px solid #2563eb',
+        borderRadius: '8px',
+        padding: '10px 20px',
+        fontSize: '14px',
+        fontWeight: '500',
+        cursor: 'pointer',
+        transition: 'all 0.2s',
     },
     cancelButton: {
         backgroundColor: '#ffffff',
@@ -297,7 +346,6 @@ const styles = {
         fontWeight: '500',
         cursor: 'pointer',
         transition: 'background-color 0.2s',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     saveButton: {
         backgroundColor: '#2563eb',
@@ -309,7 +357,6 @@ const styles = {
         fontWeight: '500',
         cursor: 'pointer',
         transition: 'background-color 0.2s',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     errorText: {
         display: 'block',

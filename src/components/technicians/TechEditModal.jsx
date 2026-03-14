@@ -8,13 +8,13 @@ export default function TechEditModal({ isOpen, onClose, onSave, editTech }) {
         email: '',
         phone: '',
         info: '',
+        commissionRate: '',
     });
 
     const [errors, setErrors] = useState({});
     const [showHistoryModal, setShowHistoryModal] = useState(false);
     const [showScheduleModal, setShowScheduleModal] = useState(false);
 
-    // Pre-fill form when editTech changes
     useEffect(() => {
         if (editTech) {
             setTech({
@@ -22,13 +22,13 @@ export default function TechEditModal({ isOpen, onClose, onSave, editTech }) {
                 email: editTech.TechEmail || '',
                 phone: editTech.TechPhone || '',
                 info: editTech.TechInfo || '',
+                commissionRate: editTech.TechCommissionRate ?? '',
             });
         }
     }, [editTech]);
 
     const formatPhoneNumber = (value) => {
         const phoneNumber = value.replace(/\D/g, '');
-
         if (phoneNumber.length <= 3) {
             return phoneNumber;
         } else if (phoneNumber.length <= 6) {
@@ -59,6 +59,16 @@ export default function TechEditModal({ isOpen, onClose, onSave, editTech }) {
             }
         }
 
+        if (field === 'commissionRate') {
+            formattedValue = value.replace(/[^0-9]/g, '');
+            const num = parseInt(formattedValue);
+            if (formattedValue && (num < 0 || num > 100)) {
+                newErrors.commissionRate = 'Commission rate must be between 0 and 100';
+            } else {
+                delete newErrors.commissionRate;
+            }
+        }
+
         setTech({ ...tech, [field]: formattedValue });
         setErrors(newErrors);
     };
@@ -70,15 +80,16 @@ export default function TechEditModal({ isOpen, onClose, onSave, editTech }) {
             newErrors.email = 'Please enter a valid email address';
         }
 
+        if (tech.commissionRate && parseInt(tech.commissionRate) > 100) {
+            newErrors.commissionRate = 'Commission rate must be between 0 and 100';
+        }
+
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
             return;
         }
 
-        onSave({
-            ...tech,
-            techID: editTech.TechID
-        });
+        onSave({ ...tech, techID: editTech.TechID });
         setErrors({});
     };
 
@@ -100,17 +111,15 @@ export default function TechEditModal({ isOpen, onClose, onSave, editTech }) {
                     </div>
 
                     <div style={styles.modalBody}>
-                        <div style={styles.formRow}>
-                            <div style={styles.formGroup}>
-                                <label style={styles.label}>Name</label>
-                                <input
-                                    type="text"
-                                    value={tech.name}
-                                    onChange={(e) => handleInputChange('name', e.target.value)}
-                                    style={styles.input}
-                                    placeholder="Enter full name"
-                                />
-                            </div>
+                        <div style={styles.formGroup}>
+                            <label style={styles.label}>Name</label>
+                            <input
+                                type="text"
+                                value={tech.name}
+                                onChange={(e) => handleInputChange('name', e.target.value)}
+                                style={styles.input}
+                                placeholder="Enter full name"
+                            />
                         </div>
 
                         <div style={styles.formGroup}>
@@ -125,9 +134,7 @@ export default function TechEditModal({ isOpen, onClose, onSave, editTech }) {
                                 }}
                                 placeholder="tech@email.com"
                             />
-                            {errors.email && (
-                                <span style={styles.errorText}>{errors.email}</span>
-                            )}
+                            {errors.email && <span style={styles.errorText}>{errors.email}</span>}
                         </div>
 
                         <div style={styles.formGroup}>
@@ -140,6 +147,26 @@ export default function TechEditModal({ isOpen, onClose, onSave, editTech }) {
                                 placeholder="(555) 123-4567"
                             />
                         </div>
+
+                        <div style={styles.formGroup}>
+                            <label style={styles.label}>Commission Rate (%)</label>
+                            <div style={styles.percentInputWrapper}>
+                                <input
+                                    type="text"
+                                    value={tech.commissionRate}
+                                    onChange={(e) => handleInputChange('commissionRate', e.target.value)}
+                                    style={{
+                                        ...styles.input,
+                                        ...styles.percentInput,
+                                        borderColor: errors.commissionRate ? '#dc2626' : '#e5e7eb',
+                                    }}
+                                    placeholder="0"
+                                />
+                                <span style={styles.percentSymbol}>%</span>
+                            </div>
+                            {errors.commissionRate && <span style={styles.errorText}>{errors.commissionRate}</span>}
+                        </div>
+
                         <div style={styles.formGroup}>
                             <label style={styles.label}>Additional Information</label>
                             <textarea
@@ -153,25 +180,15 @@ export default function TechEditModal({ isOpen, onClose, onSave, editTech }) {
                     </div>
 
                     <div style={styles.modalFooter}>
-                        <button
-                            style={styles.historyButton}
-                            onClick={() => setShowHistoryModal(true)}
-                        >
-                            📋View History
+                        <button style={styles.historyButton} onClick={() => setShowHistoryModal(true)}>
+                            📋 View History
                         </button>
-                        <button
-                            style={styles.historyButton}
-                            onClick={() => setShowScheduleModal(true)}
-                        >
-                            📅View Schedule
+                        <button style={styles.historyButton} onClick={() => setShowScheduleModal(true)}>
+                            📅 View Schedule
                         </button>
                         <div style={styles.footerRight}>
-                            <button style={styles.cancelButton} onClick={handleClose}>
-                                Cancel
-                            </button>
-                            <button style={styles.saveButton} onClick={handleSubmit}>
-                                Save Changes
-                            </button>
+                            <button style={styles.cancelButton} onClick={handleClose}>Cancel</button>
+                            <button style={styles.saveButton} onClick={handleSubmit}>Save Changes</button>
                         </div>
                     </div>
                 </div>
@@ -238,17 +255,11 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     modalBody: {
         padding: '24px',
         maxHeight: '60vh',
         overflowY: 'auto',
-    },
-    formRow: {
-        display: 'flex',
-        gap: '16px',
-        marginBottom: '20px',
     },
     formGroup: {
         marginBottom: '20px',
@@ -272,6 +283,21 @@ const styles = {
         boxSizing: 'border-box',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         color: 'black',
+    },
+    percentInputWrapper: {
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+    },
+    percentInput: {
+        paddingRight: '36px',
+    },
+    percentSymbol: {
+        position: 'absolute',
+        right: '14px',
+        fontSize: '14px',
+        color: '#6b7280',
+        pointerEvents: 'none',
     },
     textarea: {
         width: '100%',
@@ -309,7 +335,6 @@ const styles = {
         fontWeight: '500',
         cursor: 'pointer',
         transition: 'all 0.2s',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     cancelButton: {
         backgroundColor: '#ffffff',
@@ -321,7 +346,6 @@ const styles = {
         fontWeight: '500',
         cursor: 'pointer',
         transition: 'background-color 0.2s',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     saveButton: {
         backgroundColor: '#2563eb',
@@ -333,7 +357,6 @@ const styles = {
         fontWeight: '500',
         cursor: 'pointer',
         transition: 'background-color 0.2s',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     errorText: {
         display: 'block',

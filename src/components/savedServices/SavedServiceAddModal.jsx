@@ -7,6 +7,7 @@ export default function SavedServiceAddModal({ isOpen, onClose, onSave, services
         price: '',
         duration: '',
         description: '',
+        backbar: '',
     });
 
     const [errors, setErrors] = useState({});
@@ -15,17 +16,22 @@ export default function SavedServiceAddModal({ isOpen, onClose, onSave, services
         let formattedValue = value;
         let newErrors = { ...errors };
 
-        // Only allow numbers and decimals for price
         if (field === 'price') {
             formattedValue = value.replace(/[^0-9.]/g, '');
-            // Ensure only one decimal point
             const parts = formattedValue.split('.');
             if (parts.length > 2) {
                 formattedValue = parts[0] + '.' + parts.slice(1).join('');
             }
         }
 
-        // Only allow whole numbers for duration
+        if (field === 'backbar') {
+            formattedValue = value.replace(/[^0-9.]/g, '');
+            const parts = formattedValue.split('.');
+            if (parts.length > 2) {
+                formattedValue = parts[0] + '.' + parts.slice(1).join('');
+            }
+        }
+
         if (field === 'duration') {
             formattedValue = value.replace(/[^0-9]/g, '');
         }
@@ -55,6 +61,10 @@ export default function SavedServiceAddModal({ isOpen, onClose, onSave, services
             newErrors.price = 'Please enter a valid price';
         }
 
+        if (!newService.backbar || parseFloat(newService.backbar) < 0) {
+            newService.backbar = 0;
+        }
+
         if (!newService.duration || parseInt(newService.duration) <= 0) {
             newErrors.duration = 'Please enter a valid duration';
         }
@@ -65,12 +75,12 @@ export default function SavedServiceAddModal({ isOpen, onClose, onSave, services
         }
 
         onSave(newService);
-        setNewService({ code: '', name: '', price: '', duration: '', description: '' });
+        setNewService({ code: '', name: '', price: '', duration: '', description: '', backbar: '' });
         setErrors({});
     };
 
     const handleClose = () => {
-        setNewService({ code: '', name: '', price: '', duration: '', description: '' });
+        setNewService({ code: '', name: '', price: '', duration: '', description: '', backbar: '' });
         setErrors({});
         onClose();
     };
@@ -156,6 +166,17 @@ export default function SavedServiceAddModal({ isOpen, onClose, onSave, services
                                 <span style={styles.errorText}>{errors.duration}</span>
                             )}
                         </div>
+                    </div>
+
+                    <div style={styles.formGroup}>
+                        <label style={styles.label}>Backbar Cost ($)</label>
+                        <input
+                            type="text"
+                            value={newService.backbar}
+                            onChange={(e) => handleInputChange('backbar', e.target.value)}
+                            style={styles.input}
+                            placeholder="0.00"
+                        />
                     </div>
 
                     <div style={styles.formGroup}>

@@ -19,13 +19,12 @@ function DatePicker({ label, value, onChange }) {
                     if (date) onChange(formatLocalDate(date));
                 }}
                 dateFormat="MM/dd/yyyy"
-                customInput={
-                    <input style={styles.dateInput} readOnly />
-                }
+                customInput={<input style={styles.dateInput} readOnly />}
             />
         </div>
     );
 }
+
 function StatCard({ label, value, accent }) {
     return (
         <div style={{ ...styles.statCard, borderTopColor: accent }}>
@@ -44,7 +43,6 @@ export default function Totals() {
     const [fromDate, setFromDate] = useState(today);
     const [toDate, setToDate] = useState(today);
     const [totalData, setTotalData] = useState(null);
-
     const [loading, setLoading] = useState(false);
     const apiURL = import.meta.env.VITE_API_URL;
 
@@ -68,19 +66,19 @@ export default function Totals() {
         setLoading(false);
     };
 
-    // Derive stats from the API response
     const stats = useMemo(() => {
-        if (!totalData) return { rows: [], paymentRows: [], totalServices: 0, totalRevenue: 0 };
+        if (!totalData) return { rows: [], paymentRows: [], totalServices: 0, totalRevenue: 0, totalProfit: 0 };
 
-        // TotalRevenueByTech: [{TechName, Total, ServiceCount}, ...]
         const rows = (totalData.TotalRevenueByTech || []).map((item) => ({
             techId: item.TechName,
             techName: item.TechName,
             serviceCount: item.ServiceCount,
             closedRevenue: item.Total,
+            backbar: item.ServiceBackBar,
+            commission: item.ServiceCommission,
+            profit: item.Profit,
         }));
 
-        // TotalRevenueByPaymentType: [{PaymentType, Total, Count}, ...]
         const paymentRows = (totalData.TotalRevenueByPaymentType || []).map((item) => ({
             method: item.PaymentType || 'Unknown',
             revenue: item.Total,
@@ -89,14 +87,14 @@ export default function Totals() {
 
         const totalRevenue = totalData.TotalRevenue || 0;
         const totalServices = totalData.TotalServices || 0;
+        const totalProfit = totalData.TotalProfit || 0;
 
-        return { rows, paymentRows, totalRevenue, totalServices };
+        return { rows, paymentRows, totalRevenue, totalServices, totalProfit };
     }, [totalData]);
 
     const dateLabel = isSingleDay
         ? new Date(fromDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
         : `${new Date(fromDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${new Date(toDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
-
 
     return (
         <div style={styles.container}>
@@ -125,11 +123,11 @@ export default function Totals() {
                 <>
                     <div style={styles.statsRow}>
                         <StatCard label="Collected Revenue" value={formatCurrency(totalData?.TotalRevenue || 0)} accent="#10b981" />
+                        <StatCard label="Net Profit" value={formatCurrency(totalData?.TotalProfit || 0)} accent="#2563eb" />
                         <StatCard label="Appointments" value={totalData?.TotalAppointments || 0} accent="#8b5cf6" />
                         <StatCard label="Services" value={totalData?.TotalServices || 0} accent="#f59e0b" />
                     </div>
 
-                    {/* Two-column breakdown row */}
                     <div style={styles.breakdownRow}>
 
                         {/* Technician breakdown */}
@@ -148,32 +146,51 @@ export default function Totals() {
                                             <th style={styles.th}>Technician</th>
                                             <th style={{ ...styles.th, textAlign: 'right' }}>Services</th>
                                             <th style={{ ...styles.th, textAlign: 'right' }}>Collected</th>
+                                            <th style={{ ...styles.th, textAlign: 'right' }}>Backbar</th>
+                                            <th style={{ ...styles.th, textAlign: 'right' }}>Commission</th>
+                                            <th style={{ ...styles.th, textAlign: 'right' }}>Profit</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {stats.rows.map((row, i) => {
-                                            return (
-                                                <tr key={row.techId} style={{
-                                                    ...styles.tableRow,
-                                                    backgroundColor: i % 2 === 0 ? '#ffffff' : '#f9fafb',
-                                                }}>
-                                                    <td style={styles.td}>
-                                                        <div style={styles.techName}>{row.techName}</div>
-                                                    </td>
-                                                    <td style={{ ...styles.td, textAlign: 'right', color: '#374151' }}>{row.serviceCount}</td>
-                                                    <td style={{ ...styles.td, textAlign: 'right', fontWeight: '600', color: '#111827' }}>
-                                                        {formatCurrency(row.closedRevenue)}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
+                                        {stats.rows.map((row, i) => (
+                                            <tr key={row.techId} style={{
+                                                ...styles.tableRow,
+                                                backgroundColor: i % 2 === 0 ? '#ffffff' : '#f9fafb',
+                                            }}>
+                                                <td style={styles.td}>
+                                                    <div style={styles.techName}>{row.techName}</div>
+                                                </td>
+                                                <td style={{ ...styles.td, textAlign: 'right', color: '#374151' }}>{row.serviceCount}</td>
+                                                <td style={{ ...styles.td, textAlign: 'right', fontWeight: '600', color: '#111827' }}>
+                                                    {formatCurrency(row.closedRevenue)}
+                                                </td>
+                                                <td style={{ ...styles.td, textAlign: 'right', color: '#ef4444' }}>
+                                                    {formatCurrency(row.backbar)}
+                                                </td>
+                                                <td style={{ ...styles.td, textAlign: 'right', color: '#f59e0b' }}>
+                                                    {formatCurrency(row.commission)}
+                                                </td>
+                                                <td style={{ ...styles.td, textAlign: 'right', fontWeight: '600', color: '#10b981' }}>
+                                                    {formatCurrency(row.profit)}
+                                                </td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                     <tfoot>
                                         <tr style={styles.totalRow}>
                                             <td style={{ ...styles.td, fontWeight: '700', color: '#111827' }}>Total</td>
                                             <td style={{ ...styles.td, textAlign: 'right', fontWeight: '600' }}>{stats.totalServices}</td>
-                                            <td style={{ ...styles.td, textAlign: 'right', fontWeight: '700', color: '#111827', fontSize: '14px' }}>
+                                            <td style={{ ...styles.td, textAlign: 'right', fontWeight: '700', color: '#111827' }}>
                                                 {formatCurrency(stats.totalRevenue)}
+                                            </td>
+                                            <td style={{ ...styles.td, textAlign: 'right', fontWeight: '600', color: '#ef4444' }}>
+                                                {formatCurrency(stats.rows.reduce((s, r) => s + (r.backbar || 0), 0))}
+                                            </td>
+                                            <td style={{ ...styles.td, textAlign: 'right', fontWeight: '600', color: '#f59e0b' }}>
+                                                {formatCurrency(stats.rows.reduce((s, r) => s + (r.commission || 0), 0))}
+                                            </td>
+                                            <td style={{ ...styles.td, textAlign: 'right', fontWeight: '700', color: '#10b981' }}>
+                                                {formatCurrency(stats.totalProfit)}
                                             </td>
                                         </tr>
                                     </tfoot>
@@ -249,7 +266,7 @@ const styles = {
         backgroundColor: '#ffffff', cursor: 'pointer', outline: 'none',
         width: '150px', textAlign: 'center',
     },
-    statsRow: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' },
+    statsRow: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' },
     statCard: {
         backgroundColor: '#ffffff', border: '1px solid #e5e7eb', borderRadius: '8px',
         borderTop: '3px solid #3b82f6', padding: '16px 20px',

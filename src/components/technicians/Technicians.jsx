@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import TechAddModal from './TechAddModal.jsx'
 import TechEditModal from './TechEditModal.jsx'
+
 export default function Technicians() {
     const [techs, setTechs] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [hoveredRow, setHoveredRow] = useState(null);
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [editTech, setEditTech] = useState('')
+    const [editTech, setEditTech] = useState('');
     const apiURL = import.meta.env.VITE_API_URL;
 
     const filteredTechs = techs.filter(tech =>
@@ -17,9 +18,9 @@ export default function Technicians() {
     );
 
     const handleRowClick = (techID) => {
-        setEditTech(techs.find(tech => tech.TechID === techID))
-        setShowEditModal(true)
-    }
+        setEditTech(techs.find(tech => tech.TechID === techID));
+        setShowEditModal(true);
+    };
 
     const handleAddTech = (techData) => {
         fetch(apiURL + '/technicians/', {
@@ -27,7 +28,7 @@ export default function Technicians() {
             headers: new Headers({
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'X-CSRFToken': sessionStorage.getItem('csrfToken')
+                'X-CSRFToken': sessionStorage.getItem('csrfToken'),
             }),
             credentials: 'include',
             body: JSON.stringify({
@@ -36,42 +37,38 @@ export default function Technicians() {
                 TechEmail: techData.email,
                 TechInfo: techData.info,
                 TechAddress: techData.address,
-            })
-        }
-        ).then(response => {
+                TechCommissionRate: techData.commissionRate || 0,
+            }),
+        }).then(response => {
             if (response.ok) {
-                getTechs()
+                getTechs();
                 return response.json();
             }
         }).then(data => {
             if (techData.openSchedules)
-                openSchedulesForNewTech(data.TechID)
-        })
-
+                openSchedulesForNewTech(data.TechID);
+        });
         setShowAddModal(false);
     };
 
     const openSchedulesForNewTech = (techID) => {
-        const today = new Date();
         fetch(apiURL + '/technicians/' + techID + '/schedules/', {
             method: 'POST',
             headers: new Headers({
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'X-CSRFToken': sessionStorage.getItem('csrfToken')
+                'X-CSRFToken': sessionStorage.getItem('csrfToken'),
             }),
             credentials: 'include',
             body: JSON.stringify({
                 From: '2000-01-01',
-                To: "2099-12-31",
+                To: '2099-12-31',
                 Availability: true,
-                TechID: techID
-            })
+                TechID: techID,
+            }),
         }).then(response => {
-            if (response.ok) {
-                console.log("Schedules opened for new tech")
-            }
-        })
+            if (response.ok) console.log('Schedules opened for new tech');
+        });
     };
 
     const handleEditTech = (techData) => {
@@ -80,7 +77,7 @@ export default function Technicians() {
             headers: new Headers({
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'X-CSRFToken': sessionStorage.getItem('csrfToken')
+                'X-CSRFToken': sessionStorage.getItem('csrfToken'),
             }),
             credentials: 'include',
             body: JSON.stringify({
@@ -88,18 +85,14 @@ export default function Technicians() {
                 TechPhone: techData.phone,
                 TechEmail: techData.email,
                 TechInfo: techData.info,
-            })
-        }
-        ).then(response => {
-            if (response.ok) {
-                getTechs()
-            }
+                TechCommissionRate: techData.commissionRate || 0,
+            }),
+        }).then(response => {
+            if (response.ok) getTechs();
             return response.json();
-        })
+        });
         setShowEditModal(false);
-    }
-
-
+    };
 
     const getTechs = () => {
         fetch(apiURL + '/technicians/', {
@@ -109,17 +102,12 @@ export default function Technicians() {
                 'Content-Type': 'application/json',
             }),
             credentials: 'include',
-        }
-        ).then(response => {
-            return response.json();
-        })
-            .then(data => {
-                setTechs(data)
-            })
-    }
+        }).then(response => response.json())
+            .then(data => setTechs(data));
+    };
 
     useEffect(() => {
-        getTechs()
+        getTechs();
     }, []);
 
     return (
@@ -138,9 +126,10 @@ export default function Technicians() {
                 <table style={styles.table}>
                     <thead>
                         <tr style={styles.tableHeaderRow}>
-                            <th style={{ ...styles.tableHeader, width: '15%' }}>Name</th>
-                            <th style={{ ...styles.tableHeader, width: '25%' }}>Email</th>
-                            <th style={{ ...styles.tableHeader, width: '20%' }}>Phone</th>
+                            <th style={{ ...styles.tableHeader, width: '20%' }}>Name</th>
+                            <th style={{ ...styles.tableHeader, width: '30%' }}>Email</th>
+                            <th style={{ ...styles.tableHeader, width: '25%' }}>Phone</th>
+                            <th style={{ ...styles.tableHeader, width: '15%' }}>Commission</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -157,13 +146,15 @@ export default function Technicians() {
                                 onMouseLeave={() => setHoveredRow(null)}
                             >
                                 <td style={styles.tableCell}>
-                                    <div style={styles.nameCell}>
-                                        <span style={styles.nameText}>{tech.TechName}</span>
-                                    </div>
+                                    <span style={styles.nameText}>{tech.TechName}</span>
                                 </td>
                                 <td style={styles.tableCell}>{tech.TechEmail}</td>
                                 <td style={styles.tableCell}>{tech.TechPhone}</td>
-
+                                <td style={styles.tableCell}>
+                                    <span style={styles.commissionText}>
+                                        {tech.TechCommissionRate ?? 0}%
+                                    </span>
+                                </td>
                             </tr>
                         ))}
                     </tbody>
@@ -176,6 +167,7 @@ export default function Technicians() {
                     Showing {filteredTechs.length} of {techs.length} techs
                 </p>
             </div>
+
             <TechAddModal
                 isOpen={showAddModal}
                 onClose={() => setShowAddModal(false)}
@@ -187,7 +179,6 @@ export default function Technicians() {
                 onSave={handleEditTech}
                 editTech={editTech}
             />
-
         </div>
     );
 }
@@ -196,23 +187,6 @@ const styles = {
     container: {
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         padding: '0',
-    },
-    header: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '24px',
-    },
-    title: {
-        fontSize: '24px',
-        fontWeight: 'bold',
-        color: '#111827',
-        margin: '0 0 4px 0',
-    },
-    subtitle: {
-        fontSize: '14px',
-        color: '#6b7280',
-        margin: 0,
     },
     addButton: {
         backgroundColor: '#2563eb',
@@ -240,14 +214,14 @@ const styles = {
         backgroundColor: '#ffffff',
         boxSizing: 'border-box',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        color: 'black'
+        color: 'black',
     },
     tableContainer: {
         backgroundColor: '#ffffff',
         borderRadius: '8px',
         border: '1px solid #e5e7eb',
-        maxHeight: '60vh',      // ← limit height
-        overflowY: 'auto',       // ← enable vertical scroll
+        maxHeight: '60vh',
+        overflowY: 'auto',
     },
     table: {
         width: '100%',
@@ -272,8 +246,6 @@ const styles = {
         borderBottom: '1px solid #e5e7eb',
         transition: 'background-color 0.2s',
     },
-
-
     tableCell: {
         padding: '16px',
         fontSize: '14px',
@@ -281,64 +253,15 @@ const styles = {
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        verticalAlign: 'left',
-        textAlign: 'left'
-    },
-    nameCell: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-    },
-    avatar: {
-        width: '36px',
-        height: '36px',
-        borderRadius: '50%',
-        backgroundColor: '#2563eb',
-        color: '#ffffff',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '14px',
-        fontWeight: '600',
+        textAlign: 'left',
     },
     nameText: {
         fontWeight: '500',
         color: '#111827',
     },
-    statusBadge: {
-        padding: '4px 12px',
-        borderRadius: '12px',
-        fontSize: '12px',
-        fontWeight: '500',
-        display: 'inline-block',
-    },
-    actions: {
-        display: 'flex',
-        gap: '8px',
-    },
-    editButton: {
-        backgroundColor: 'transparent',
+    commissionText: {
+        fontWeight: '600',
         color: '#2563eb',
-        border: '1px solid #2563eb',
-        borderRadius: '6px',
-        padding: '6px 12px',
-        fontSize: '13px',
-        fontWeight: '500',
-        cursor: 'pointer',
-        transition: 'all 0.2s',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    },
-    deleteButton: {
-        backgroundColor: 'transparent',
-        color: '#dc2626',
-        border: '1px solid #dc2626',
-        borderRadius: '6px',
-        padding: '6px 12px',
-        fontSize: '13px',
-        fontWeight: '500',
-        cursor: 'pointer',
-        transition: 'all 0.2s',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     footer: {
         marginTop: '16px',

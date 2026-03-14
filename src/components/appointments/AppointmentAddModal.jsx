@@ -18,7 +18,9 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
         ServiceDuration: 30,
         ServicePrice: 0,
         ServiceComment: '',
-        TechID: prefilledTechID
+        ServiceBackbar: 0,
+        ServiceCommissionRate: 0,
+        TechID: prefilledTechID,
     }]);
     const apiURL = import.meta.env.VITE_API_URL;
 
@@ -27,7 +29,6 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
             fetchCustomers();
             fetchSavedServices();
             fetchTechnicians();
-            // Reset services with prefilled values when modal opens
             setServices([{
                 ServiceName: '',
                 ServiceCode: '',
@@ -35,7 +36,9 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
                 ServiceDuration: 30,
                 ServicePrice: 0,
                 ServiceComment: '',
-                TechID: prefilledTechID
+                ServiceBackbar: 0,
+                ServiceCommissionRate: 0,
+                TechID: prefilledTechID,
             }]);
         }
     }, [isOpen, prefilledTime, prefilledTechID]);
@@ -50,14 +53,10 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
         try {
             const response = await fetch(`${apiURL}/customers/`, {
                 method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
                 credentials: 'include',
             });
-            const data = await response.json();
-            setCustomers(data);
+            setCustomers(await response.json());
         } catch (error) {
             console.error('Error fetching customers:', error);
         }
@@ -67,14 +66,10 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
         try {
             const response = await fetch(`${apiURL}/savedservices/`, {
                 method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
                 credentials: 'include',
             });
-            const data = await response.json();
-            setSavedServices(data);
+            setSavedServices(await response.json());
         } catch (error) {
             console.error('Error fetching saved services:', error);
         }
@@ -84,26 +79,20 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
         try {
             const response = await fetch(`${apiURL}/technicians/`, {
                 method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
                 credentials: 'include',
             });
-            const data = await response.json();
-            setTechnicians(data);
+            setTechnicians(await response.json());
         } catch (error) {
             console.error('Error fetching technicians:', error);
         }
     };
 
     const addService = () => {
-        // Calculate next start time based on last service
         const lastService = services[services.length - 1];
         let nextStartTime = '';
 
         if (lastService.ServiceStartTime && lastService.ServiceDuration) {
-            // Parse the time (HH:MM format)
             const [hours, minutes] = lastService.ServiceStartTime.split(':').map(Number);
             const totalMinutes = hours * 60 + minutes + parseInt(lastService.ServiceDuration);
             const nextHours = Math.floor(totalMinutes / 60);
@@ -118,7 +107,9 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
             ServiceDuration: 30,
             ServicePrice: 0,
             ServiceComment: '',
-            TechID: lastService.TechID || ''
+            ServiceBackbar: 0,
+            ServiceCommissionRate: lastService.ServiceCommissionRate || 0,
+            TechID: lastService.TechID || '',
         }]);
     };
 
@@ -132,48 +123,54 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
         const updatedServices = [...services];
         updatedServices[index][field] = value;
 
-        // If ServiceCode is changed, check if it matches a saved service
+        // Prefill from saved service on code change
         if (field === 'ServiceCode' && value) {
             const savedService = savedServices.find(s => s.ServiceCode === value);
             if (savedService) {
                 updatedServices[index]['ServiceName'] = savedService.ServiceName;
                 updatedServices[index]['ServiceDuration'] = savedService.ServiceDuration;
                 updatedServices[index]['ServicePrice'] = savedService.ServicePrice;
+                updatedServices[index]['ServiceBackbar'] = savedService.ServiceBackbar ?? 0;
+            } else {
+                updatedServices[index]['ServiceBackbar'] = 0;
             }
+        }
+
+        // Prefill commission rate from tech on tech change
+        if (field === 'TechID' && value) {
+            const tech = technicians.find(t => t.TechID === parseInt(value));
+            updatedServices[index]['ServiceCommissionRate'] = tech?.TechCommissionRate ?? 0;
         }
 
         setServices(updatedServices);
     };
 
-    // Format options for React Select
     const customerOptions = customers.map(customer => ({
         value: customer.CustomerID,
         label: `${customer.CustomerFirstName} ${customer.CustomerLastName}`,
         phone: customer.CustomerPhone,
-        searchString: `${customer.CustomerFirstName} ${customer.CustomerLastName} ${customer.CustomerPhone}`.toLowerCase()
+        searchString: `${customer.CustomerFirstName} ${customer.CustomerLastName} ${customer.CustomerPhone}`.toLowerCase(),
     }));
 
     const technicianOptions = technicians.map(tech => ({
         value: tech.TechID,
         label: tech.TechName,
-        searchString: tech.TechName.toLowerCase()
+        searchString: tech.TechName.toLowerCase(),
     }));
 
     const serviceCodeOptions = savedServices.map(service => ({
         value: service.ServiceCode,
         label: `${service.ServiceCode} - ${service.ServiceName}`,
-        displayLabel: service.ServiceCode, // What to show when selected
+        displayLabel: service.ServiceCode,
         data: service,
-        searchString: `${service.ServiceCode} ${service.ServiceName}`.toLowerCase()
+        searchString: `${service.ServiceCode} ${service.ServiceName}`.toLowerCase(),
     }));
 
-    // Custom filter function for React Select
     const customFilter = (option, searchText) => {
         if (!searchText) return true;
         return option.data.searchString.includes(searchText.toLowerCase());
     };
 
-    // Custom styles for React Select to match your design
     const selectStyles = {
         control: (base, state) => ({
             ...base,
@@ -183,9 +180,7 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
             padding: '0px 4px',
             fontSize: '14px',
             boxShadow: 'none',
-            '&:hover': {
-                borderColor: '#2563eb'
-            }
+            '&:hover': { borderColor: '#2563eb' },
         }),
         option: (base, state) => ({
             ...base,
@@ -194,64 +189,39 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
             fontSize: '14px',
             padding: '8px 12px',
             cursor: 'pointer',
-            '&:active': {
-                backgroundColor: '#93c5fd'
-            }
+            '&:active': { backgroundColor: '#93c5fd' },
         }),
         menu: (base) => ({
             ...base,
             borderRadius: '6px',
             border: '1px solid #e5e7eb',
             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-            marginTop: '4px'
+            marginTop: '4px',
         }),
-        menuList: (base) => ({
-            ...base,
-            padding: 0,
-            borderRadius: '6px'
-        }),
-        singleValue: (base) => ({
-            ...base,
-            color: '#111827',
-            fontSize: '14px',
-            textAlign: 'left'
-        }),
-        placeholder: (base) => ({
-            ...base,
-            color: '#9ca3af',
-            fontSize: '14px',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
-        }),
-        input: (base) => ({
-            ...base,
-            color: '#111827',
-            fontSize: '14px'
-        })
+        menuList: (base) => ({ ...base, padding: 0, borderRadius: '6px' }),
+        singleValue: (base) => ({ ...base, color: '#111827', fontSize: '14px', textAlign: 'left' }),
+        placeholder: (base) => ({ ...base, color: '#9ca3af', fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }),
+        input: (base) => ({ ...base, color: '#111827', fontSize: '14px' }),
     };
 
-    // Custom option component to show phone number
     const CustomerOption = ({ data, ...props }) => (
         <div {...props.innerProps} style={{
             padding: '8px 12px',
             backgroundColor: props.isFocused ? '#dbeafe' : '#ffffff',
             cursor: 'pointer',
-            fontSize: '14px'
+            fontSize: '14px',
         }}>
             <div style={{ fontWeight: '500', color: '#111827', textAlign: 'left' }}>{data.label}</div>
             <div style={{ fontSize: '12px', color: '#6b7280', textAlign: 'left' }}>{data.phone}</div>
         </div>
     );
 
-    // Custom single value component to show only ServiceCode when selected
     const ServiceCodeSingleValue = (props) => (
         <components.SingleValue {...props}>
             {props.data.displayLabel || props.data.value}
         </components.SingleValue>
     );
 
-    // Payment type options
     const paymentTypeOptions = [
         { value: 'Cash', label: 'Cash' },
         { value: 'Credit Card', label: 'Credit Card' },
@@ -265,7 +235,7 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
         { value: 'Open', label: 'Scheduled' },
         { value: 'Pending', label: 'Checked In' },
         { value: 'Closed', label: 'Closed' },
-        { value: 'Cancelled', label: 'Cancelled' }
+        { value: 'Cancelled', label: 'Cancelled' },
     ];
 
     const formatLocalDate = (date) => {
@@ -307,8 +277,10 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
                 ServiceDuration: parseInt(s.ServiceDuration),
                 ServicePrice: parseFloat(s.ServicePrice),
                 ServiceComment: s.ServiceComment,
-                TechID: parseInt(s.TechID)
-            }))
+                ServiceBackbar: parseFloat(s.ServiceBackbar ?? 0),
+                ServiceCommissionRate: parseInt(s.ServiceCommissionRate ?? 0),
+                TechID: parseInt(s.TechID),
+            })),
         };
 
         const success = await onSave(appointmentData);
@@ -325,19 +297,20 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
             ServiceDuration: 30,
             ServicePrice: 0,
             ServiceComment: '',
-            TechID: ''
+            ServiceBackbar: 0,
+            ServiceCommissionRate: 0,
+            TechID: '',
         }]);
         onClose();
     };
 
     const handleAddCustomer = (customerData) => {
-        const apiURL = import.meta.env.VITE_API_URL;
         fetch(apiURL + '/customers/', {
             method: 'POST',
             headers: new Headers({
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'X-CSRFToken': sessionStorage.getItem('csrfToken')
+                'X-CSRFToken': sessionStorage.getItem('csrfToken'),
             }),
             credentials: 'include',
             body: JSON.stringify({
@@ -347,21 +320,15 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
                 CustomerPhone: customerData.phone,
                 CustomerAddress: customerData.address,
                 CustomerInfo: customerData.info,
-            })
-        }).then(response => {
-            if (response.ok) {
-                return response.json();
-            }
-        }).then(data => {
-            if (data) {
-                // Refresh customers list and select the new customer
-                fetchCustomers();
-                setSelectedCustomer(data.CustomerID.toString());
-                setShowCustomerAddModal(false);
-            }
-        }).catch(error => {
-            console.error('Error adding customer:', error);
-        });
+            }),
+        }).then(response => response.ok ? response.json() : null)
+            .then(data => {
+                if (data) {
+                    fetchCustomers();
+                    setSelectedCustomer(data.CustomerID.toString());
+                    setShowCustomerAddModal(false);
+                }
+            }).catch(error => console.error('Error adding customer:', error));
     };
 
     if (!isOpen) return null;
@@ -375,7 +342,6 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
                 </div>
 
                 <div style={styles.modalBody}>
-                    {/* Customer, Date, Payment Type Row */}
                     <div style={styles.formRow}>
                         <div style={{ ...styles.formGroup, flex: '0 0 calc(37% - 8px)' }}>
                             <label style={styles.label}>Customer</label>
@@ -391,11 +357,7 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
                                     filterOption={customFilter}
                                     components={{ Option: CustomerOption }}
                                 />
-                                <button
-                                    style={styles.newCustomerButton}
-                                    onClick={() => setShowCustomerAddModal(true)}
-                                    type="button"
-                                >
+                                <button style={styles.newCustomerButton} onClick={() => setShowCustomerAddModal(true)} type="button">
                                     + New
                                 </button>
                             </div>
@@ -403,12 +365,7 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
 
                         <div style={{ ...styles.formGroup, flex: '0 0 calc(15% - 8px)' }}>
                             <label style={styles.label}>Date</label>
-                            <input
-                                type="date"
-                                style={styles.input}
-                                value={appointmentDate}
-                                onChange={(e) => setAppointmentDate(e.target.value)}
-                            />
+                            <input type="date" style={styles.input} value={appointmentDate} onChange={(e) => setAppointmentDate(e.target.value)} />
                         </div>
 
                         <div style={{ ...styles.formGroup, flex: '0 0 calc(25% - 8px)' }}>
@@ -434,13 +391,10 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
                         </div>
                     </div>
 
-                    {/* Services */}
                     <div style={styles.servicesSection}>
                         <div style={styles.servicesSectionHeader}>
                             <h4 style={styles.servicesTitle}>Services</h4>
-                            <button style={styles.addServiceButton} onClick={addService}>
-                                + Add Service
-                            </button>
+                            <button style={styles.addServiceButton} onClick={addService}>+ Add Service</button>
                         </div>
 
                         {services.map((service, index) => (
@@ -448,16 +402,9 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
                                 <div style={styles.serviceCardHeader}>
                                     <span style={styles.serviceNumber}>Service {index + 1}</span>
                                     {services.length > 1 && (
-                                        <button
-                                            style={styles.removeServiceButton}
-                                            onClick={() => removeService(index)}
-                                        >
-                                            Remove
-                                        </button>
+                                        <button style={styles.removeServiceButton} onClick={() => removeService(index)}>Remove</button>
                                     )}
                                 </div>
-
-
 
                                 <div style={styles.formRow}>
                                     <div style={{ ...styles.formGroup, flex: '1' }}>
@@ -471,10 +418,12 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
                                                     updateService(index, 'ServiceName', option.data.ServiceName);
                                                     updateService(index, 'ServiceDuration', option.data.ServiceDuration);
                                                     updateService(index, 'ServicePrice', option.data.ServicePrice);
+                                                    updateService(index, 'ServiceBackbar', option.data.ServiceBackbar ?? 0);
                                                 } else if (option) {
                                                     updateService(index, 'ServiceCode', option.value);
                                                 } else {
                                                     updateService(index, 'ServiceCode', '');
+                                                    updateService(index, 'ServiceBackbar', 0);
                                                 }
                                             }}
                                             onInputChange={(inputValue, actionMeta) => {
@@ -490,6 +439,7 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
                                             components={{ SingleValue: ServiceCodeSingleValue }}
                                         />
                                     </div>
+
                                     <div style={{ ...styles.formGroup, flex: '1' }}>
                                         <label style={styles.label}>Service Name</label>
                                         <input
@@ -500,8 +450,6 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
                                             placeholder="Enter service name"
                                         />
                                     </div>
-
-
 
                                     <div style={{ ...styles.formGroup, flex: '1' }}>
                                         <label style={styles.label}>Technician</label>
@@ -521,54 +469,40 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
                                 <div style={styles.formRow}>
                                     <div style={styles.formGroup}>
                                         <label style={styles.label}>Start Time</label>
-                                        <input
-                                            type="time"
-                                            style={styles.input}
-                                            value={service.ServiceStartTime}
-                                            onChange={(e) => updateService(index, 'ServiceStartTime', e.target.value)}
-                                        />
+                                        <input type="time" style={styles.input} value={service.ServiceStartTime} onChange={(e) => updateService(index, 'ServiceStartTime', e.target.value)} />
                                     </div>
 
                                     <div style={styles.formGroup}>
                                         <label style={styles.label}>Duration (min)</label>
-                                        <input
-                                            type="number"
-                                            style={styles.input}
-                                            value={service.ServiceDuration}
-                                            onChange={(e) => updateService(index, 'ServiceDuration', e.target.value)}
-                                            min="15"
-                                            step="15"
-                                        />
+                                        <input type="number" style={styles.input} value={service.ServiceDuration} onChange={(e) => updateService(index, 'ServiceDuration', e.target.value)} min="15" step="15" />
                                     </div>
 
                                     <div style={styles.formGroup}>
                                         <label style={styles.label}>Price</label>
-                                        <input
-                                            type="number"
-                                            style={styles.input}
-                                            value={service.ServicePrice}
-                                            onChange={(e) => updateService(index, 'ServicePrice', e.target.value)}
-                                            min="0"
-                                            step="0.01"
-                                        />
+                                        <input type="number" style={styles.input} value={service.ServicePrice} onChange={(e) => updateService(index, 'ServicePrice', e.target.value)} min="0" step="0.01" />
                                     </div>
                                 </div>
+
                                 <div style={styles.formRow}>
                                     <div style={styles.formGroup}>
+                                        <label style={styles.label}>Backbar Cost ($)</label>
+                                        <input type="number" style={styles.input} value={service.ServiceBackbar} onChange={(e) => updateService(index, 'ServiceBackbar', e.target.value)} min="0" step="0.01" />
+                                    </div>
+
+                                    <div style={styles.formGroup}>
+                                        <label style={styles.label}>Commission Rate (%)</label>
+                                        <input type="number" style={styles.input} value={service.ServiceCommissionRate} onChange={(e) => updateService(index, 'ServiceCommissionRate', e.target.value)} min="0" max="100" />
+                                    </div>
+
+                                    <div style={styles.formGroup}>
                                         <label style={styles.label}>Comment/Note</label>
-                                        <input
-                                            type="text"
-                                            style={styles.input}
-                                            value={service.ServiceComment}
-                                            onChange={(e) => updateService(index, 'ServiceComment', e.target.value)}
-                                        />
+                                        <input type="text" style={styles.input} value={service.ServiceComment} onChange={(e) => updateService(index, 'ServiceComment', e.target.value)} />
                                     </div>
                                 </div>
                             </div>
                         ))}
                     </div>
 
-                    {/* Total */}
                     <div style={styles.totalSection}>
                         <span style={styles.totalLabel}>Total:</span>
                         <span style={styles.totalAmount}>${calculateTotal()}</span>
@@ -576,15 +510,10 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
                 </div>
 
                 <div style={styles.modalFooter}>
-                    <button style={styles.cancelButton} onClick={handleClose}>
-                        Cancel
-                    </button>
-                    <button style={styles.saveButton} onClick={handleSubmit}>
-                        Save Appointment
-                    </button>
+                    <button style={styles.cancelButton} onClick={handleClose}>Cancel</button>
+                    <button style={styles.saveButton} onClick={handleSubmit}>Save Appointment</button>
                 </div>
 
-                {/* Customer Add Modal */}
                 <CustomerAddModal
                     isOpen={showCustomerAddModal}
                     onClose={() => setShowCustomerAddModal(false)}
@@ -598,10 +527,7 @@ export default function AppointmentAddModal({ isOpen, onClose, onSave, selectedD
 const styles = {
     modalOverlay: {
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        top: 0, left: 0, right: 0, bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.6)',
         display: 'flex',
         alignItems: 'center',
@@ -626,12 +552,7 @@ const styles = {
         padding: '24px 24px 16px 24px',
         borderBottom: '1px solid #e5e7eb',
     },
-    modalTitle: {
-        fontSize: '20px',
-        fontWeight: 'bold',
-        color: '#111827',
-        margin: 0,
-    },
+    modalTitle: { fontSize: '20px', fontWeight: 'bold', color: '#111827', margin: 0 },
     closeButton: {
         backgroundColor: 'transparent',
         border: 'none',
@@ -645,28 +566,11 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
-    modalBody: {
-        padding: '24px',
-        overflowY: 'auto',
-        flex: 1,
-    },
-    formGroup: {
-        marginBottom: '16px',
-        flex: 1,
-    },
-    formRow: {
-        display: 'flex',
-        gap: '16px',
-    },
-    label: {
-        display: 'block',
-        fontSize: '14px',
-        fontWeight: '500',
-        color: '#374151',
-        marginBottom: '6px',
-    },
+    modalBody: { padding: '24px', overflowY: 'auto', flex: 1 },
+    formGroup: { marginBottom: '16px', flex: 1 },
+    formRow: { display: 'flex', gap: '16px' },
+    label: { display: 'block', fontSize: '14px', fontWeight: '500', color: '#374151', marginBottom: '6px' },
     input: {
         width: '100%',
         padding: '8px 12px',
@@ -679,33 +583,9 @@ const styles = {
         backgroundColor: '#ffffff',
         color: '#111827',
     },
-    select: {
-        width: '100%',
-        padding: '8px 12px',
-        fontSize: '14px',
-        border: '1px solid #e5e7eb',
-        borderRadius: '6px',
-        outline: 'none',
-        boxSizing: 'border-box',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        backgroundColor: '#ffffff',
-        color: '#111827',
-    },
-    servicesSection: {
-        marginTop: '24px',
-    },
-    servicesSectionHeader: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '16px',
-    },
-    servicesTitle: {
-        fontSize: '16px',
-        fontWeight: '600',
-        color: '#111827',
-        margin: 0,
-    },
+    servicesSection: { marginTop: '24px' },
+    servicesSectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
+    servicesTitle: { fontSize: '16px', fontWeight: '600', color: '#111827', margin: 0 },
     addServiceButton: {
         backgroundColor: '#2563eb',
         color: '#ffffff',
@@ -715,7 +595,6 @@ const styles = {
         fontSize: '14px',
         fontWeight: '500',
         cursor: 'pointer',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     serviceCard: {
         backgroundColor: '#f9fafb',
@@ -724,17 +603,8 @@ const styles = {
         padding: '16px',
         marginBottom: '16px',
     },
-    serviceCardHeader: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '16px',
-    },
-    serviceNumber: {
-        fontSize: '14px',
-        fontWeight: '600',
-        color: '#111827',
-    },
+    serviceCardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
+    serviceNumber: { fontSize: '14px', fontWeight: '600', color: '#111827' },
     removeServiceButton: {
         backgroundColor: 'transparent',
         color: '#dc2626',
@@ -744,7 +614,6 @@ const styles = {
         fontSize: '13px',
         fontWeight: '500',
         cursor: 'pointer',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     totalSection: {
         display: 'flex',
@@ -756,16 +625,8 @@ const styles = {
         borderRadius: '8px',
         marginTop: '24px',
     },
-    totalLabel: {
-        fontSize: '16px',
-        fontWeight: '600',
-        color: '#374151',
-    },
-    totalAmount: {
-        fontSize: '20px',
-        fontWeight: '700',
-        color: '#2563eb',
-    },
+    totalLabel: { fontSize: '16px', fontWeight: '600', color: '#374151' },
+    totalAmount: { fontSize: '20px', fontWeight: '700', color: '#2563eb' },
     modalFooter: {
         display: 'flex',
         justifyContent: 'flex-end',
@@ -782,7 +643,6 @@ const styles = {
         fontSize: '14px',
         fontWeight: '500',
         cursor: 'pointer',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     saveButton: {
         backgroundColor: '#2563eb',
@@ -793,7 +653,6 @@ const styles = {
         fontSize: '14px',
         fontWeight: '500',
         cursor: 'pointer',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
     newCustomerButton: {
         position: 'absolute',
@@ -808,7 +667,6 @@ const styles = {
         fontSize: '12px',
         fontWeight: '500',
         cursor: 'pointer',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         transition: 'all 0.2s',
         zIndex: 10,
     },

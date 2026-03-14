@@ -31,10 +31,10 @@ export default function SavedServices() {
                 ServiceName: serviceData.name,
                 ServicePrice: serviceData.price,
                 ServiceDuration: serviceData.duration,
-                ServiceDescription: serviceData.description
+                ServiceDescription: serviceData.description,
+                ServiceBackbar: serviceData.backbar || 0,
             })
-        }
-        ).then(response => {
+        }).then(response => {
             if (response.ok) {
                 getServices()
             }
@@ -57,10 +57,10 @@ export default function SavedServices() {
                 ServiceName: serviceData.name,
                 ServicePrice: serviceData.price,
                 ServiceDuration: serviceData.duration,
-                ServiceDescription: serviceData.description
+                ServiceDescription: serviceData.description,
+                ServiceBackbar: serviceData.backbar || 0,
             })
-        }
-        ).then(response => {
+        }).then(response => {
             if (response.ok) {
                 getServices()
             }
@@ -83,12 +83,11 @@ export default function SavedServices() {
                 'X-CSRFToken': sessionStorage.getItem('csrfToken')
             }),
             credentials: 'include',
-        })
-            .then(response => {
-                if (response.ok) {
-                    getServices()
-                }
-            });
+        }).then(response => {
+            if (response.ok) {
+                getServices()
+            }
+        });
     };
 
     const getServices = () => {
@@ -100,15 +99,9 @@ export default function SavedServices() {
             }),
             credentials: 'include',
         })
-            .then(response => {
-                return response.json();
-            })
-            .then(data => {
-                setServices(data);
-            })
-            .catch(error => {
-                console.error('Error fetching services:', error);
-            });
+            .then(response => response.json())
+            .then(data => setServices(data))
+            .catch(error => console.error('Error fetching services:', error));
     };
 
     useEffect(() => {
@@ -132,10 +125,11 @@ export default function SavedServices() {
                     <thead>
                         <tr style={styles.tableHeaderRow}>
                             <th style={{ ...styles.tableHeader, width: '15%' }}>Code</th>
-                            <th style={{ ...styles.tableHeader, width: '25%' }}>Name</th>
-                            <th style={{ ...styles.tableHeader, width: '12%' }}>Price</th>
-                            <th style={{ ...styles.tableHeader, width: '12%' }}>Duration</th>
-                            <th style={{ ...styles.tableHeader, width: '36%' }}>Description</th>
+                            <th style={{ ...styles.tableHeader, width: '22%' }}>Name</th>
+                            <th style={{ ...styles.tableHeader, width: '11%' }}>Price</th>
+                            <th style={{ ...styles.tableHeader, width: '11%' }}>Duration</th>
+                            <th style={{ ...styles.tableHeader, width: '11%' }}>Backbar</th>
+                            <th style={{ ...styles.tableHeader, width: '30%' }}>Description</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -167,6 +161,11 @@ export default function SavedServices() {
                                 <td style={styles.tableCell}>
                                     <span style={styles.durationText}>
                                         {service.ServiceDuration} min
+                                    </span>
+                                </td>
+                                <td style={styles.tableCell}>
+                                    <span style={styles.backbarText}>
+                                        ${parseFloat(service.ServiceBackbar ?? 0).toFixed(2)}
                                     </span>
                                 </td>
                                 <td style={styles.tableCell}>
@@ -223,14 +222,14 @@ const styles = {
         backgroundColor: '#ffffff',
         boxSizing: 'border-box',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        color: 'black'
+        color: 'black',
     },
     tableContainer: {
         backgroundColor: '#ffffff',
         borderRadius: '8px',
         border: '1px solid #e5e7eb',
-        maxHeight: '60vh',      // ← limit height
-        overflowY: 'auto',       // ← enable vertical scroll
+        maxHeight: '60vh',
+        overflowY: 'auto',
     },
     table: {
         width: '100%',
@@ -265,7 +264,7 @@ const styles = {
         overflow: 'hidden',
         textOverflow: 'ellipsis',
         verticalAlign: 'middle',
-        textAlign: 'left'
+        textAlign: 'left',
     },
     codeCell: {
         display: 'flex',
@@ -290,6 +289,10 @@ const styles = {
         fontSize: '15px',
     },
     durationText: {
+        color: '#6b7280',
+        fontSize: '13px',
+    },
+    backbarText: {
         color: '#6b7280',
         fontSize: '13px',
     },
@@ -323,5 +326,4 @@ const styles = {
         transition: 'background-color 0.2s',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     },
-
 };

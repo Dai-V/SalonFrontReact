@@ -7,26 +7,31 @@ export default function SavedServiceEditModal({ isOpen, onClose, onSave, service
         price: '',
         duration: '',
         description: '',
+        backbar: '',
     });
     const [showConfirmation, setShowConfirmation] = useState(null);
-
     const [errors, setErrors] = useState({});
 
     const handleInputChange = (field, value) => {
         let formattedValue = value;
         let newErrors = { ...errors };
 
-        // Only allow numbers and decimals for price
         if (field === 'price') {
             formattedValue = value.replace(/[^0-9.]/g, '');
-            // Ensure only one decimal point
             const parts = formattedValue.split('.');
             if (parts.length > 2) {
                 formattedValue = parts[0] + '.' + parts.slice(1).join('');
             }
         }
 
-        // Only allow whole numbers for duration
+        if (field === 'backbar') {
+            formattedValue = value.replace(/[^0-9.]/g, '');
+            const parts = formattedValue.split('.');
+            if (parts.length > 2) {
+                formattedValue = parts[0] + '.' + parts.slice(1).join('');
+            }
+        }
+
         if (field === 'duration') {
             formattedValue = value.replace(/[^0-9]/g, '');
         }
@@ -43,6 +48,7 @@ export default function SavedServiceEditModal({ isOpen, onClose, onSave, service
                 price: editService.ServicePrice || '',
                 duration: editService.ServiceDuration || '',
                 description: editService.ServiceDescription || '',
+                backbar: editService.ServiceBackbar ?? '',
             });
         }
     }, [editService]);
@@ -68,6 +74,10 @@ export default function SavedServiceEditModal({ isOpen, onClose, onSave, service
             newErrors.price = 'Please enter a valid price';
         }
 
+        if (!newService.backbar || parseFloat(newService.backbar) < 0) {
+            newService.backbar = 0;
+        }
+
         if (!newService.duration || parseInt(newService.duration) <= 0) {
             newErrors.duration = 'Please enter a valid duration';
         }
@@ -76,6 +86,7 @@ export default function SavedServiceEditModal({ isOpen, onClose, onSave, service
             setErrors(newErrors);
             return;
         }
+
         onSave(newService);
         setErrors({});
     };
@@ -89,8 +100,7 @@ export default function SavedServiceEditModal({ isOpen, onClose, onSave, service
         onDelete(editService.ServiceID);
         setShowConfirmation(null);
         handleClose();
-    }
-
+    };
 
     if (!isOpen) return null;
 
@@ -176,6 +186,17 @@ export default function SavedServiceEditModal({ isOpen, onClose, onSave, service
                     </div>
 
                     <div style={styles.formGroup}>
+                        <label style={styles.label}>Backbar Cost ($)</label>
+                        <input
+                            type="text"
+                            value={newService.backbar}
+                            onChange={(e) => handleInputChange('backbar', e.target.value)}
+                            style={styles.input}
+                            placeholder="0.00"
+                        />
+                    </div>
+
+                    <div style={styles.formGroup}>
                         <label style={styles.label}>Description (Optional)</label>
                         <textarea
                             value={newService.description}
@@ -210,7 +231,6 @@ export default function SavedServiceEditModal({ isOpen, onClose, onSave, service
                                 Are you sure you want to delete this service? This action cannot be undone.
                             </p>
                             <div style={styles.confirmButtons}>
-
                                 <button style={styles.confirmCancel} onClick={() => setShowConfirmation(null)}>Cancel</button>
                                 <button style={styles.confirmClose} onClick={confirmCloseAll}>Delete</button>
                             </div>
@@ -325,7 +345,6 @@ const styles = {
         padding: '16px 24px 24px 24px',
         borderTop: '1px solid #e5e7eb',
     },
-
     deleteButton: {
         backgroundColor: '#dc2626',
         color: '#ffffff',
