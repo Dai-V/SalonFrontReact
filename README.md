@@ -3,7 +3,8 @@
 Features for next patch:
 - Recurring Appointments
 - Recurring Schedules fot technicians (including time for each date)
-
+- Add backbar cost to services
+- Add commission rate for each technician
 
 
 Planned Features:
